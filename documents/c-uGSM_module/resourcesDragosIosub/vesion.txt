@@ -1,0 +1,10 @@
+Version history
+April 18, 2016		1.012
+	updated for compatibility with
+	RPI3 and Raspbian Jessie(v20160318) distribution
+	RPi3 USB connection supported by default. For serial connection
+	read the Raspbian Jessie/RPi3 special how to documentation. 
+April 11, 2016		1.011
+	add MMS send capabilities
+September 10, 2015	1.01 
+	initial

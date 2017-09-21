@@ -1,0 +1,10 @@
+#This SOFTWARE is distributed is provide "AS IS" in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
+#warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#Dragos Iosub, Bucharest 2015.
+#http://itbrainpower.net
+
+sudo route del default
+#sudo pon a-gsm
+sudo pon c-uGSM
+#sudo pon d-u3G

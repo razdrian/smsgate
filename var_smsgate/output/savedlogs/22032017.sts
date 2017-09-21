@@ -1,0 +1,75 @@
+22/03/2017_00:07:00 [daemonCls.py   :420 - stop           ] SIGTERM signal was sent right now.
+22/03/2017_00:07:08 [daemonCls.py   :390 - killThreads    ] All the 5 threads were killed successfully!
+22/03/2017_00:07:08 [daemonCls.py   :767 - systemQuit     ] System is starting the Quit procedures right now ... 
+22/03/2017_00:07:08 [hwcntrMth.py   :99  - powerOff       ] trying to shutdown QuectelM95...
+22/03/2017_00:07:17 [hwcntrMth.py   :109 - powerOff       ] QuectelM95 is now turned off 
+22/03/2017_00:07:17 [gsmserialLib.py:75  - stopSerialCom  ] Closed uGSM connection on /dev/ttyAMA0
+22/03/2017_00:07:17 [hwcntrMth.py   :190 - hwRelease      ] RPi GPIO pins released successfully
+22/03/2017_00:08:37 [daemonCls.py   :755 - systemSetup    ] System is starting the Setup procedures right now ... 
+22/03/2017_00:08:38 [gsmserialLib.py:43  - startSerialCom ] Open uGSM connection on /dev/ttyAMA0
+22/03/2017_00:08:39 [hwcntrMth.py   :71  - powerOn        ] Trying to power on QuectelM95...
+22/03/2017_00:08:46 [hwcntrMth.py   :78  - powerOn        ] QuectelM95 is now up!
+22/03/2017_00:08:52 [basicMth.py    :46  - setup          ] SIM ready? no PIN checking?
+22/03/2017_00:08:53 [basicMth.py    :52  - setup          ] SIM is unlocked
+22/03/2017_00:08:54 [basicMth.py    :56  - setup          ] Please wait while initializing SIM for SMS processing...
+22/03/2017_00:09:13 [basicMth.py    :71  - setup          ] SIM initialization completed and ready to Go!
+22/03/2017_00:20:45 [daemonCls.py   :420 - stop           ] SIGTERM signal was sent right now.
+22/03/2017_00:20:58 [daemonCls.py   :390 - killThreads    ] All the 5 threads were killed successfully!
+22/03/2017_00:20:58 [daemonCls.py   :768 - systemQuit     ] System is starting the Quit procedures right now ... 
+22/03/2017_00:20:58 [hwcntrMth.py   :99  - powerOff       ] trying to shutdown QuectelM95...
+22/03/2017_00:21:07 [hwcntrMth.py   :109 - powerOff       ] QuectelM95 is now turned off 
+22/03/2017_00:21:07 [gsmserialLib.py:75  - stopSerialCom  ] Closed uGSM connection on /dev/ttyAMA0
+22/03/2017_00:21:07 [hwcntrMth.py   :190 - hwRelease      ] RPi GPIO pins released successfully
+22/03/2017_00:23:29 [daemonCls.py   :755 - systemSetup    ] System is starting the Setup procedures right now ... 
+22/03/2017_00:23:30 [gsmserialLib.py:43  - startSerialCom ] Open uGSM connection on /dev/ttyAMA0
+22/03/2017_00:23:31 [hwcntrMth.py   :71  - powerOn        ] Trying to power on QuectelM95...
+22/03/2017_00:23:37 [hwcntrMth.py   :78  - powerOn        ] QuectelM95 is now up!
+22/03/2017_00:23:44 [basicMth.py    :46  - setup          ] SIM ready? no PIN checking?
+22/03/2017_00:23:45 [basicMth.py    :52  - setup          ] SIM is unlocked
+22/03/2017_00:23:46 [basicMth.py    :56  - setup          ] Please wait while initializing SIM for SMS processing...
+22/03/2017_00:24:05 [basicMth.py    :71  - setup          ] SIM initialization completed and ready to Go!
+22/03/2017_00:26:08 [daemonCls.py   :420 - stop           ] SIGTERM signal was sent right now.
+22/03/2017_00:26:20 [daemonCls.py   :390 - killThreads    ] All the 5 threads were killed successfully!
+22/03/2017_00:26:20 [daemonCls.py   :768 - systemQuit     ] System is starting the Quit procedures right now ... 
+22/03/2017_00:26:20 [hwcntrMth.py   :99  - powerOff       ] trying to shutdown QuectelM95...
+22/03/2017_00:26:29 [hwcntrMth.py   :109 - powerOff       ] QuectelM95 is now turned off 
+22/03/2017_00:26:29 [gsmserialLib.py:75  - stopSerialCom  ] Closed uGSM connection on /dev/ttyAMA0
+22/03/2017_00:26:29 [hwcntrMth.py   :190 - hwRelease      ] RPi GPIO pins released successfully
+22/03/2017_00:26:29 [daemonCls.py   :755 - systemSetup    ] System is starting the Setup procedures right now ... 
+22/03/2017_00:26:30 [gsmserialLib.py:43  - startSerialCom ] Open uGSM connection on /dev/ttyAMA0
+22/03/2017_00:26:31 [hwcntrMth.py   :71  - powerOn        ] Trying to power on QuectelM95...
+22/03/2017_00:26:37 [hwcntrMth.py   :78  - powerOn        ] QuectelM95 is now up!
+22/03/2017_00:26:44 [basicMth.py    :46  - setup          ] SIM ready? no PIN checking?
+22/03/2017_00:26:45 [basicMth.py    :52  - setup          ] SIM is unlocked
+22/03/2017_00:26:46 [basicMth.py    :56  - setup          ] Please wait while initializing SIM for SMS processing...
+22/03/2017_00:27:05 [basicMth.py    :71  - setup          ] SIM initialization completed and ready to Go!
+22/03/2017_09:32:58 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:32:59 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:33:01 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:33:02 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:33:04 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:33:05 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:33:07 [handlCls.py    :229 - handleSMS      ] Command blinkred.py was found and will be executed now
+22/03/2017_09:33:08 [handlCls.py    :235 - handleSMS      ] Command blinkred.phd was NOT found!
+22/03/2017_09:33:08 [handlCls.py    :229 - handleSMS      ] Command copysms.sh was found and will be executed now
+22/03/2017_09:33:08 [handlCls.py    :229 - handleSMS      ] Command copyeml.sh was found and will be executed now
+22/03/2017_09:33:08 [handlCls.py    :229 - handleSMS      ] Command blinkyellow.py was found and will be executed now
+22/03/2017_09:33:10 [handlCls.py    :456 - handleFS       ] Sending 'This is the text of the SMS. Will be sent as an sms' SMS to 0724289644 
+22/03/2017_09:33:19 [daemonCls.py   :120 - fsWorker       ] File /var/smsgate/input/smstest.sms will be now deleted 
+22/03/2017_09:33:25 [emailCls.py    :236 - sendMail       ] Email send! From: Petre Adrian-Razvan To: raz.adrian95@gmail.com Subject: Fatal Error
+22/03/2017_09:33:25 [daemonCls.py   :120 - fsWorker       ] File /var/smsgate/input/emltest.eml will be now deleted 
+22/03/2017_09:38:15 [daemonCls.py   :420 - stop           ] SIGTERM signal was sent right now.
+22/03/2017_09:38:15 [daemonCls.py   :755 - systemSetup    ] System is starting the Setup procedures right now ... 
+22/03/2017_09:38:16 [gsmserialLib.py:43  - startSerialCom ] Open uGSM connection on /dev/ttyAMA0
+22/03/2017_09:38:17 [hwcntrMth.py   :68  - powerOn        ] QuectelM95 is already up!
+22/03/2017_09:38:21 [daemonCls.py   :390 - killThreads    ] All the 5 threads were killed successfully!
+22/03/2017_09:38:21 [daemonCls.py   :768 - systemQuit     ] System is starting the Quit procedures right now ... 
+22/03/2017_09:38:21 [hwcntrMth.py   :99  - powerOff       ] trying to shutdown QuectelM95...
+22/03/2017_09:42:08 [daemonCls.py   :755 - systemSetup    ] System is starting the Setup procedures right now ... 
+22/03/2017_09:42:09 [gsmserialLib.py:43  - startSerialCom ] Open uGSM connection on /dev/ttyAMA0
+22/03/2017_09:42:10 [hwcntrMth.py   :71  - powerOn        ] Trying to power on QuectelM95...
+22/03/2017_09:42:16 [hwcntrMth.py   :78  - powerOn        ] QuectelM95 is now up!
+22/03/2017_09:42:22 [basicMth.py    :46  - setup          ] SIM ready? no PIN checking?
+22/03/2017_09:42:23 [basicMth.py    :52  - setup          ] SIM is unlocked
+22/03/2017_09:42:24 [basicMth.py    :56  - setup          ] Please wait while initializing SIM for SMS processing...
+22/03/2017_09:42:43 [basicMth.py    :71  - setup          ] SIM initialization completed and ready to Go!

@@ -1,0 +1,77 @@
+{
+  "employees": [
+    {
+      "ID": "1",
+      "Name": "Ives Tamboon",
+      "PhoneNo": "0724000000",
+      "Email": "ives.tamboon@gmail.com"
+    },
+    {
+      "ID": "2",
+      "Name": "Leila Dopoller",
+      "PhoneNo": "0724000000",
+      "Email": "leila.dopoller@gmail.com"
+    },
+    {
+      "ID": "3",
+      "Name": "Helga Gosond",
+      "PhoneNo": "0724000000",
+      "Email": "helga.gosond@gmail.com"
+    },
+    {
+      "ID": "4",
+      "Name": "Emory Spesper",
+      "PhoneNo": "0724000000",
+      "Email": "emory.spesper@gmail.com"
+    },
+    {
+      "ID": "5",
+      "Name": "Bertha Loltent",
+      "PhoneNo": "0724000000",
+      "Email": "bertha.loltent@gmail.com"
+    },
+    {
+      "ID": "6",
+      "Name": "Clive Smursh",
+      "PhoneNo": "0724000000",
+      "Email": "clive.smursh@gmail.com"
+    },
+    {
+      "ID": "7",
+      "Name": "Bertha Loltent",
+      "PhoneNo": "0764000000",
+      "Email": "Bertha Loltent@yahoo.com"
+    },
+    {
+      "ID": "8",
+      "Name": "Abigail Boltun",
+      "PhoneNo": "0764000000",
+      "Email": "abigail.boltun@yahoo.com"
+    }
+ 
+ 
+  ],
+  "groups": {
+    "admins": [
+      1,
+      2
+    ],
+    "sysadmins": [
+      1,
+      2, 
+      3
+    ],
+    "staff": [
+      1,
+      2,
+      3
+    ],
+    "colleagues": [
+      1,
+      3,
+      7,
+      8
+    ]
+ 
+  }
+}

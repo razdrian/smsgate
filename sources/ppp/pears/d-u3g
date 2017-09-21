@@ -1,0 +1,37 @@
+# PPPD conf example for d-u3g by itbrainpower.net (Debian/Ubuntu).
+
+# Replace on next line YOURPROVIDERS-APN with APN of your provider:
+# connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T YOURPROVIDERS-APN"
+connect "/usr/sbin/chat -v -f /etc/chatscripts/gprs -T internet"
+
+# SELECT: Serial device for your platform follows.
+# RPi use /dev/ttyAMA0 uncomment next:
+#/dev/ttyAMA0
+# BeagleBone Black use /dev/ttyO2 uncomment next:
+#/dev/ttyO2
+# OR using USB connection, uncomment next (ACM0,ACM1,ACM2,ACM3):
+/dev/ttyACM0
+
+# serial line speed.
+115200
+
+# the IP address is allocated dynamically by the ISP.
+noipdefault
+
+# name server(s) obtained from the ISP.
+usepeerdns
+
+# make it default route to the internet.
+defaultroute
+
+# redial PPPD if connection brocken.
+persist
+
+# no authenticate needed.
+noauth
+
+# no hardware flow control
+nocrtscts
+
+# no modem control lines
+local

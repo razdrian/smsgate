@@ -1,0 +1,23 @@
+-->Information about software application smsgate.py:
+The smsgate.py daemon is still active and alive
+
+_____________________________________
+|   Resource Name    |      State      |
+|     QuectelM95     |     Released    |
+|       Email        |     Released    |
+-------------------------------------
+
+___________________________________________________
+|  Thread Name  |    Liveness   |      State      |
+|  Email Thread |     Alive     |       Idle      |
+|   SMS Thread  |     Alive     |       Idle      |
+|   FS Thread   |     Alive     |       Idle      |
+|powerMng Thread|     Alive     |       Idle      |
+|watchdog Thread|     Alive     |       Idle      |
+---------------------------------------------------
+-->Information regarding power management:
+On PowerLine SMSGate's battery is Fully Charged! 
+
+-->Information about hardware QuectelM95:
+QuectelM95 is registered to network, GSM signal is 7/7 level, and its status is: alive
+

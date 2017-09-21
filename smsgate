@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+#defSTR: 2 3 4 5
+#defSTOP 0 1 6
+# description: smsgate daemon for SMSGate system
+# COPYRIGHT (C) 2016 Razvan Petre
+
+EXEC_PATH=/home/pi/smsgate/src/py/src
+export PYTHONPATH=$PYTHONPATH:/home/pi/smsgate/src/py/lib:/home/pi/smsgate/src/py/src
+
+# Start the service smsgate
+start() {    
+	python $EXEC_PATH/smsgate.py start
+	sudo cp /var/smsgate/smsgate.pid /var/run/smsgate.pid
+}
+
+# Stop the service smsgate
+# A delay of 15 seconds is needed to provide time to power off all 
+# Remove pid file from /var/smsgate
+stop() { 
+	python $EXEC_PATH/smsgate.py stop
+	sleep 15
+	sudo rm /var/smsgate/smsgate.pid
+}
+
+# Print the smsgate system status
+# This runs when sending sudo service smsgate statusgsm 
+# Python app will store the new status in /var/smsgate/livestatus.txt (overwrite the old one)
+statusgsm() {        
+	python $EXEC_PATH/smsgate.py status
+}
+
+### main logic of smsgate daemon here ###
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+	# by default the daemon will only print here info about Linux daemon
+        ;;
+  statusgsm)
+	statusgsm
+	;;
+  restart)
+        # the daemon will call stop() and then start()
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|status|statusgsm}"
+        exit 1
+esac
+  
+exit 0
