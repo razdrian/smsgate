@@ -1,6 +1,6 @@
-* Project Name: SMSGate 
+﻿* Project Name: SMSGate 
 * Descrtiption: Bridge between LAN and GSM using d-uGSM module (based on Quectel UG95) and Raspberry Pi 3
-* Date: 22/11/2016 
+* Date: 2016-11-22 
 * Author: Adrian-Razvan Petre 
 * [Under AMIQ Education Program](http://www.amiq.com/consulting/education/)
 
@@ -46,7 +46,7 @@
 * Enable UART
 * sudo vim /boot/config.txt and update enable_uart=0 to enable_uart=1 
 * sudo apt-get install python3
-* edit $HOME/.bashrc and add export PYTHONPATH=$PYTHONPATH:~/smsgate/src/py/lib:~/smsgate/src/py/src
+* edit $HOME/.bashrc and add export PYTHONPATH=$PYTHONPATH:~/smsgate/src/py/lib:$HOME/smsgate/src/py/src
 
 
 ## Documentation links
