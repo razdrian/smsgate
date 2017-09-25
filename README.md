@@ -45,7 +45,7 @@
 * sudo raspi-config -> 8. Advanced Options -> A8. Serial -> Disable 
 * Enable UART
 * sudo vim /boot/config.txt and update enable_uart=0 to enable_uart=1 
-* sudo apt-get install python3
+* sudo apt-get install python3.
 * edit $HOME/.bashrc and add export PYTHONPATH=$PYTHONPATH:$HOME/smsgate/src/py/lib:$HOME/smsgate/src/py/src
 
 
