@@ -61,7 +61,7 @@
 * [view/download the design in Web Browser here](https://myhub.autodesk360.com/ue2906e76/g/shares/SHabee1QT1a327cf2b7a7fcac2ec095da1a6?viewState=NoIgbgDAdAjCA0IDeAdEAXAngBwKZoC40ARXAZwEsBzAOzXjQEMyzd1C0A2AIwCYBWACYBmACyCAtKIidGUmPwBmEgJzS5jJUoHDB-HmgC%2BIALpA)
 
 ## Acknowledgements
-* Dragoș Iosub from ITBrainPower provided a library sketch  with the d-uGSM Module. The communication with the module in the SMSGate application is based on this API, which was a very good starting point.
+* Dragos  Iosub from ITBrainPower provided a library sketch  with the d-uGSM Module. The communication with the module in the SMSGate application is based on this API, which was a very good starting point.
 
 ## Amiq Consulting blog article
 * [here](https://www.amiq.com/consulting/2017/03/24/mentoring-young-talent-through-hands-on-applications/)
