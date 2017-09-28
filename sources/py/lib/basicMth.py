@@ -68,7 +68,7 @@ def setup(self):
 
     clearInput()
 
-    Logger.info("SIM initialization completed and ready to Go!")
+    Logger.info("GSM initalization compelted ...")
 
 
 

@@ -84,19 +84,23 @@ class Manager:
             self.queue.pop()
 
     def startPPP(self):
-        process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result, error = process.communicate('sudo '+'pon '+'d-u3G')
+        #process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #result, error = process.communicate('sudo '+'route '+'del '+'default ')
+	process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	result, error = process.communicate('sudo '+'pon '+'d-u3G')
+	time.sleep(3)
         if error:
             return False
         else:
             return True
     def stopPPP(self):
-        process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result, error = process.communicate('sudo '+'poff '+'d-u3G')
-        if error:
-            return False
-        else:
-            return True
+        #process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #result, error = process.communicate('sudo '+'poff '+'d-u3G')
+	#time.sleep(3)
+        #if error:
+        #   return False
+        #else:
+        return True
 
     def testGPRSping(self):
         process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

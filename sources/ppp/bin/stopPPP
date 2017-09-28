@@ -1,9 +1,14 @@
-#This SOFTWARE is distributed is provide "AS IS" in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
-#warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#Dragos Iosub, Bucharest 2015.
-#http://itbrainpower.net
+#!/bin/bash
+
+#This PPP connection is based on Dragos Iosub's example provided with the d-u3G module 
+#The SMSGate application was developed by Petre Adrian-Razvan under AMIQ Educational Program 
 
 #sudo poff a-gsm
-sudo poff c-uGSM
-#sudo poff d-u3G
+#sudo poff c-uGSM
+sudo poff d-u3G
+
+
+
+
+
+

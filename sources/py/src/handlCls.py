@@ -262,8 +262,10 @@ class Handlers:
                         pass
                     else:
                         Logger.warning('Unknown ord From: %s Content: %s' % (sender_no, raw_sms))
+			return 1
             else:
                 Logger.warning('Unknown SMS content From: %s Content: %s' % (sender_no, raw_sms))
+		return 1
 
         else:
             Logger.warning('Unauthorized SMS message From: %s Content: %s' % (sender_no, sms))

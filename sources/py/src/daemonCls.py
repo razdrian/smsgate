@@ -568,8 +568,14 @@ class Daemon:
         QuectelM95.setup()
         QuectelM95.setSMSstorage('SM', 'SM', 'SM')
         QuectelM95.deleteMulSMS('ALL')
-        Manager.startPPP()
-        time.sleep(6)
+	
+        ok=True	
+        while (ok):
+	    Manager.startPPP()
+	    ok=not Manager.testGPRSping()
+	    if(ok):
+	        Logger.error('GPRS initialization not completed... Retry in a few seconds seconds')
+	Logger.info('GPRS initialization compelted. All system GOOD to GO!')
         # RPiemail.setup()
         Manager.setup()
 
@@ -579,7 +585,10 @@ class Daemon:
         stopSerialCom()
         QuectelM95.hwRelease()
         # RPiemail.quit()
-        Manager.stopPPP()
+        if (not Manager.stopPPP()):
+	    Logger.error('GPRS final stop error ...')
+	else:
+	    Logger.info('GPRS stop compelted!')	
         Manager.quit()
 
     def run(self):

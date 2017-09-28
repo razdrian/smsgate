@@ -69,10 +69,13 @@ def powerOn(self):
         return 0
     else:
         Logger.info("Trying to power on QuectelM95...")
-        #GPIO.output(POWER, GPIO.LOW)
-        #time.sleep(10)
+        GPIO.output(POWER, GPIO.LOW)
+        time.sleep(0.2)
         GPIO.output(POWER, GPIO.HIGH)
-    time.sleep(1)
+	time.sleep(1)
+	GPIO.output(POWER, GPIO.LOW)
+	time.sleep(0.2)
+    time.sleep(5)
     self.refreshStat(True)
     if self.status:
         Logger.info("QuectelM95 is now up!")
@@ -97,13 +100,12 @@ def powerOff(self):
     self.refreshStat(True)
     if self.status:
         Logger.info("trying to shutdown QuectelM95...")
-        #GPIO.output(POWER, GPIO.HIGH)
-        #time.sleep(10)
-        GPIO.output(POWER, GPIO.LOW)
+        #todo send a AT+QPOWD command
+	res = sendATcommand("AT+QPOWD", ["OK", "ERROR"], 1)
     else:
         Logger.info("QuectelM95 is already down!")
         return
-    time.sleep(8)
+    time.sleep(5)
     self.refreshStat(True)
     if not self.status:
         Logger.info("QuectelM95 is now turned off ")
