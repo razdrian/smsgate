@@ -81,44 +81,6 @@ def refreshSMSno(self):
         return -1
 
 
-def setSMSstorage(self, mem1, mem2, mem3):
-    """
-    method to set the storage for the SMS
-
-    There are 2 physical storages in QuectelM95 chip: SIM and Mobile Equipment, each with a capacity of 10 SMS
-        - Code for SIM message storage is "SM"
-        - Code for Mobile Equipment is "ME"
-        - Code for combining the 2 storages is "MT"
-
-    @param self: GSM_Modem object
-    @param mem1:
-        - sets the memory where 'Messagees to be read and deleted' are stored
-        - Storage for memory1 (SM,ME or MT)
-    @param mem2:
-        - parameter sets the memory where written Messages will be stored
-        - Storage for memory2 (SM,ME or MT)
-    @param mem3:
-        - parameter sets the memory where received messages will be stored
-        - Storage for memory3 (SM,ME or MT)
-    @return: 0 if success, -1 for more than 5 TIMEOUT errors on sending command
-    """
-    err_count = 0
-    while 1:
-        clearInput()
-        res = sendATcommand("AT+CPMS=\"" + mem1 + "\"," + "\"" + mem2 + "\",\"" + mem3 + "\"", ["OK", "+CMS ERROR:"],
-                            10)
-        if (res == 0):
-            break
-        else:
-            if err_count < 5:
-                err_count += 1
-            else:
-                Logger.error("Error trying to select the memory storages.")
-                return -1
-        sleep(0.5)
-    return 0
-
-
 def getSMS(self, SMSindex):
     """
     Retrieves an SMS from SMSIndex

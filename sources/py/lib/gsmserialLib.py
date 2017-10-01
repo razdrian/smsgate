@@ -111,6 +111,7 @@ def sendATcommand(command, endChars, timeOut):
     :raise:
         *SerialCommWriteError
         *SerialCommReadError
+        *SerialRecError
     """
     global gsmModule
     global readStringLen

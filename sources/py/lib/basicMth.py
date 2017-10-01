@@ -43,6 +43,8 @@ def setup(self):
     sendATcommand("AT+QIMUX=0", ["OK", "ERROR"], 5)     # Control whether to enable TCPIP data
     sendATcommand("AT+QIDNSIP=0", ["OK", "ERROR"], 5)   # Connect with IP address or DNS
     sendATcommand("AT+CSCS=\"IRA\"",["OK","ERROR"],5)   # Select TE character set to International Reference Alphabet
+    sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", ["OK", "+CMS ERROR:"], 5)   #Select storage for SMS mem1 = SM, mem2 = SM, mem3 = SM
+
     Logger.info("SIM ready? no PIN checking?")
     while 1:
         clearInput()

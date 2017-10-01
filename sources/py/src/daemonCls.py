@@ -562,13 +562,7 @@ class Daemon:
     def systemSetup(self):
         Logger.info('SMSGate system is starting the Setup procedures right now')
 
-        # time.sleep(1)
-        QuectelM95.hwSetup()
-
-        # time.sleep(1)
-        QuectelM95.powerOn()
-
-        # time.sleep(1)
+        time.sleep(1)
         try:
             startSerialCom()
         except SerialStartError:
@@ -580,25 +574,45 @@ class Daemon:
         else:
             Logger.info('Serial communication setup procedures completed successfully.')
 
+        time.sleep(1)
+        QuectelM95.hwSetup()
+
+        time.sleep(1)
+        try:
+            QuectelM95.powerOn()
+        except ModemAlreadyOnError:
+            Logger.warning('GSM Modem is already powered on...')
+        except ModemPowerOnError:
+            Logger.error('GSM Modem was not powered on...')
+        except:
+            Logger.error('Unknown error while trying to start GSM Modem...')
+        else:
+            Logger.info('GSM Modem is now powered on.')
 
 
+        time.sleep(4)
         QuectelM95.setup()
-        QuectelM95.setSMSstorage('SM', 'SM', 'SM')
         QuectelM95.deleteMulSMS('ALL')
 	
         ok=True	
         while (ok):
-	    Manager.startPPP()
-	    ok=not Manager.testGPRSping()
-	    if(ok):
-	        Logger.error('GPRS initialization not completed... Retry in a few seconds seconds')
-	Logger.info('GPRS initialization compelted. All system GOOD to GO!')
+            Manager.startPPP()
+            ok=not Manager.testGPRSping()
+            if(ok):
+                Logger.error('GPRS initialization not completed... Retry in a few seconds seconds')
+
+        Logger.info('GPRS initialization compelted. All system GOOD to GO!')
         # RPiemail.setup()
         Manager.setup()
 
     def systemQuit(self):
-        Logger.info('System is starting the Quit procedures right now ... ')
-        QuectelM95.powerOff()
+        Logger.info('SMSGate system is starting the quit procedures right now')
+
+        Manager.quit()
+        if (not Manager.stopPPP()):
+            Logger.error('GPRS final stop error ...')
+        else:
+            Logger.info('GPRS stop compelted!')
 
         try:
             stopSerialCom()
@@ -609,15 +623,19 @@ class Daemon:
         else:
             Logger.info('Serial communication was successfully closed.')
 
-
+        try:
+            QuectelM95.powerOff()
+        except ModemAlreadyOffError:
+            Logger.warning('GSM Modem is already powered off...')
+        except ModemPowerOffError:
+            Logger.error('GSM Modem was not powered off...')
+        except:
+            Logger.error('Unknown error while trying to stop GSM Modem...')
+        else:
+            Logger.info('GSM Modem is now powered off.')
 
         QuectelM95.hwRelease()
-        # RPiemail.quit()
-        if (not Manager.stopPPP()):
-	    Logger.error('GPRS final stop error ...')
-	else:
-	    Logger.info('GPRS stop compelted!')	
-        Manager.quit()
+
 
     def run(self):
         self.isrunning = True

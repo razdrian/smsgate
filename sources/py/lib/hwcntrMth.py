@@ -23,146 +23,154 @@
 
 import RPi.GPIO as GPIO
 from gsmserialLib import *
+from userDefErrs import *
 from time import sleep
-
 
 
 def refreshStat(self, mode):
     """
-    refresh the status var
+    refresh the status variable, memebr of the class
 
-    @param self: GSMModem object
-    @param mode: True -> refresh the status using STATUS GPIO if False -> refresh the modem using AT command
-    @return: void
+    :param self:
+        *GSMModem object
+        *mode:
+            **True -> refresh the status using STATUS GPIO
+            **False -> refresh the modem using AT command
+    :raise:
+        *GPIOinputError
+        *SerialSetupError
     """
     if mode:
-        self.status = GPIO.input(STATUS)
+        try:
+            self.status = GPIO.input(STATUS)
+        except:
+            self.status = False
+            raise GPIOinputError
     else:
-        gsmModuleWrite("+++\r\n")
-        gsmModuleWrite(chr(0x1B) + "\r\n")
-        gsmModuleWrite("AT\r\n")
-        gsmModuleWrite("ATE1\r\n")
-        gsmModuleWrite("ATV1\r\n")
-        clearSInput()
-        clearInput()
-        res = sendATcommand("AT", ["OK", "ERROR"], 1)
-        if (res > 0):
-            self.status = 1
+        try:
+            gsmModuleWrite("+++\r\n")
+            gsmModuleWrite(chr(0x1B) + "\r\n")
+            gsmModuleWrite("AT\r\n")
+            gsmModuleWrite("ATE1\r\n")
+            gsmModuleWrite("ATV1\r\n")
+            clearSInput()
+            clearInput()
+        except:
+            raise SerialSetupError
+        try:
+            sendATcommand("AT", ["OK", "ERROR"], 1)
+        except:
+            self.status=False
+            return
         else:
-            self.status = 0
+            self.status=True
 
 
 def powerOn(self):
     """
-    if the modem is alreay up, the method returns
-
+    if the modem is alreay up, the method raises ModemAlreadyOnError
     if it is not up, tries to power it up
 
-    if powering up fails, sends to Logger an error
+    :param
+        *self: GSMModem object
+    :raise:
+        *GPIOoutputError
+        *GPIOinputError
+        *SerialSetupError
+        *ModemAlreadyOnError
+        *ModemPowerOnError
 
-    @param self: GSMModem object
-    @return: 0 if success and -1 if failure
     """
     self.refreshStat(True)
     if self.status:
-        Logger.info("QuectelM95 is already up!")
-        return 0
+        raise ModemAlreadyOnError
     else:
-        Logger.info("Trying to power on QuectelM95...")
-        GPIO.output(POWER, GPIO.LOW)
-        sleep(0.2)
-        GPIO.output(POWER, GPIO.HIGH)
+        try:
+            GPIO.output(POWER, GPIO.LOW)
+            sleep(0.2)
+            GPIO.output(POWER, GPIO.HIGH)
+            sleep(0.5)
+            GPIO.output(POWER, GPIO.LOW)
+            sleep(0.2)
+        except:
+            raise GPIOoutputError
     sleep(1)
-    GPIO.output(POWER, GPIO.LOW)
-    sleep(0.2)
-    sleep(5)
     self.refreshStat(True)
-    if self.status:
-        Logger.info("QuectelM95 is now up!")
-        return 0
-    else:
-        Logger.error("Failure powering on QuectelM95")
-        return -1
+    if not self.status:
+        raise ModemPowerOnError
 
 
 def powerOff(self):
     """
-    if the modem is alreay down, the method returns
-
+    if the modem is alreay down, the method raises ModemAlreadyOffError
     if it is not down, tries to power it off
-
-    if powering off fails, sends to Logger an error
-
-    @param self: GSMModem object
-    @return: 0 if success and -1 for failure
+    :param self:
+        *GSMModem object
+    :raise:
+        *GPIOinputError
+        *SerialSetupError
+        *ModemAlreadyOffError
+        *ModemPowerOffError
     """
 
     self.refreshStat(True)
-    if self.status:
-        Logger.info("trying to shutdown QuectelM95...")
-        #todo send a AT+QPOWD command
-	res = sendATcommand("AT+QPOWD", ["OK", "ERROR"], 1)
-    else:
-        Logger.info("QuectelM95 is already down!")
-        return
-    sleep(5)
-    self.refreshStat(True)
     if not self.status:
-        Logger.info("QuectelM95 is now turned off ")
-        #return 0
+        raise ModemAlreadyOffError
     else:
-        Logger.error("failure powering off QuectelM95!")
-        #return -1
+        try:
+            sendATcommand("AT+QPOWD", ["OK", "ERROR"], 1)
+        except:
+            self.status=True
+            return
+        else:
+            self.status=False
+    sleep(1)
+    self.refreshStat(True)
+    if self.status:
+        raise ModemPowerOffError
 
 
 def restart(self):
     """
     restart the modem using powerOff() and powerOn() methods
-
-    @param self: GSMModem object
-    @return: 0 if success and -1 for failure
+    :param
+        *self: GSMModem object
+    :raise:
+        *GPIOinputError
+        *GPIOoutputError
+        *SerialSetupError
+        *ModemAlreadyOffError
+        *ModemPowerOffError
     """
-    # if self.powerOff() == -1:
-    #     return -1
-    # sleep(3)
-    # if self.powerOn() == -1:
-    #     return -1
-    # return 0
-
     self.powerOff()
-    sleep(3)
+    sleep(1)
     self.powerOn()
-
-
 
 
 def reset(self):
     """
     reset the modem using the RESET GPIO pin connection
-
-    @param self: GSMModem object
-    @return: 0 success and -1 for failure
+    :param
+        *self: GSMModem object
+    :raise:
+        *GPIOoutputError
     """
-    Logger.info("trying to reset QuectelM95")
-    GPIO.output(RESET, GPIO.LOW)
-    sleep(1)
-    GPIO.output(RESET, GPIO.HIGH)
-    sleep(8)
-    self.refreshStat(True)
-    if not self.status:
-        Logger.info("QuectelM95 is down")
-        #return 0
-    else:
-        Logger.error("failure reset QuectelM95")
-        #return -1
+    try:
+        GPIO.output(RESET, GPIO.LOW)
+        sleep(1)
+        GPIO.output(RESET, GPIO.HIGH)
+        sleep(5)
+    except:
+        raise GPIOoutputError
 
 
 def hwSetup(self):
     """
     set up the GPIO pins STATUS POWER and RESET as I/O and gives them the initial value of HIGH
-
-    @param self: GSMModem object
-    @return: None
+    :param self:
+        *GSMModem object
+    :raise
+        *GPIOSetupError
     """
     global GPIO
 
@@ -173,22 +181,23 @@ def hwSetup(self):
         GPIO.setup(POWER, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(RESET, GPIO.OUT, initial=GPIO.LOW)
     except:
-        GPIO.cleanup()  # free GPIO if there is an exception
+        GPIO.cleanup()
         GPIO.setup(STATUS, GPIO.IN)
         GPIO.setup(POWER, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(RESET, GPIO.OUT, initial=GPIO.LOW)
+        raise GPIOSetupError
     GPIO.setwarnings(True)
 
 
 def hwRelease(self):
     """
     release all the GPIO used from GSMModem
-
-    @param self: GSMModem object
-    @return: None
+    :param
+        *self: GSMModem object
+    :raise:
+        *GPIOReleaseError
     """
     try:
         GPIO.cleanup()
-        Logger.info('RPi GPIO pins released successfully')
     except:
-        Logger.error('Could not release RPi GPIO pins!')
+        raise GPIOReleaseError

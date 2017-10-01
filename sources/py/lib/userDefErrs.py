@@ -53,3 +53,35 @@ class SerialCommFatalError(Exception):
 class SerialReadLineError(Exception):
     def __init__(self):
         pass
+
+class GPIOinputError(Exception):
+    def __init__(self):
+        pass
+
+class GPIOoutputError(Exception):
+    def __init__(self):
+        pass
+
+class ModemAlreadyOnError(Exception):
+    def __init__(self):
+        pass
+
+class ModemAlreadyOffError(Exception):
+    def __init__(self):
+        pass
+
+class ModemPowerOnError(Exception):
+    def __init__(self):
+        pass
+
+class ModemPowerOffError(Exception):
+    def __init__(self):
+        pass
+
+class GPIOSetupError(Exception):
+    def __init__(self):
+        pass
+
+class GPIOReleaseError(Exception):
+    def __init__(self):
+        pass

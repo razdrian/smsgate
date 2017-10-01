@@ -78,4 +78,3 @@ class GSMModem:
     deleteSMS = classmethod(deleteSMS)
     deleteMulSMS = classmethod(deleteMulSMS)
 
-    setSMSstorage = classmethod(setSMSstorage)
