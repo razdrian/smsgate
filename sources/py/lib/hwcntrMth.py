@@ -23,7 +23,7 @@
 
 import RPi.GPIO as GPIO
 from gsmserialLib import *
-
+from time import sleep
 
 
 
@@ -38,11 +38,11 @@ def refreshStat(self, mode):
     if mode:
         self.status = GPIO.input(STATUS)
     else:
-        aGsmWRITE("+++\r\n")
-        aGsmWRITE(chr(0x1B) + "\r\n")
-        aGsmWRITE("AT\r\n")
-        aGsmWRITE("ATE1\r\n")
-        aGsmWRITE("ATV1\r\n")
+        gsmModuleWrite("+++\r\n")
+        gsmModuleWrite(chr(0x1B) + "\r\n")
+        gsmModuleWrite("AT\r\n")
+        gsmModuleWrite("ATE1\r\n")
+        gsmModuleWrite("ATV1\r\n")
         clearSInput()
         clearInput()
         res = sendATcommand("AT", ["OK", "ERROR"], 1)
@@ -70,12 +70,12 @@ def powerOn(self):
     else:
         Logger.info("Trying to power on QuectelM95...")
         GPIO.output(POWER, GPIO.LOW)
-        time.sleep(0.2)
+        sleep(0.2)
         GPIO.output(POWER, GPIO.HIGH)
-	time.sleep(1)
-	GPIO.output(POWER, GPIO.LOW)
-	time.sleep(0.2)
-    time.sleep(5)
+    sleep(1)
+    GPIO.output(POWER, GPIO.LOW)
+    sleep(0.2)
+    sleep(5)
     self.refreshStat(True)
     if self.status:
         Logger.info("QuectelM95 is now up!")
@@ -105,7 +105,7 @@ def powerOff(self):
     else:
         Logger.info("QuectelM95 is already down!")
         return
-    time.sleep(5)
+    sleep(5)
     self.refreshStat(True)
     if not self.status:
         Logger.info("QuectelM95 is now turned off ")
@@ -124,13 +124,13 @@ def restart(self):
     """
     # if self.powerOff() == -1:
     #     return -1
-    # time.sleep(3)
+    # sleep(3)
     # if self.powerOn() == -1:
     #     return -1
     # return 0
 
     self.powerOff()
-    time.sleep(3)
+    sleep(3)
     self.powerOn()
 
 
@@ -145,9 +145,9 @@ def reset(self):
     """
     Logger.info("trying to reset QuectelM95")
     GPIO.output(RESET, GPIO.LOW)
-    time.sleep(1)
+    sleep(1)
     GPIO.output(RESET, GPIO.HIGH)
-    time.sleep(8)
+    sleep(8)
     self.refreshStat(True)
     if not self.status:
         Logger.info("QuectelM95 is down")

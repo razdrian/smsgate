@@ -23,7 +23,7 @@
 
 
 from gsmserialLib import *
-
+from time import sleep
 
 def setup(self):
     """
@@ -52,7 +52,7 @@ def setup(self):
             Logger.info("SIM is unlocked")
             break
         Logger.warning("SIM is locked!. Please remove the PIN verification!")
-    time.sleep(1)
+    sleep(1)
     Logger.info("Please wait while initializing SIM for SMS processing...")
     while 1:
         clearInput()
@@ -60,7 +60,7 @@ def setup(self):
         buffd = getResponse()
         if (buffd.find("+CME ERROR") < 0):
             break
-        time.sleep(0.5)
+        sleep(0.5)
 
     sendATcommand("AT+CPBS=\"SM\"", ["OK", "ERROR"], 7)
     sendATcommand("AT+CMGF=1", ["OK", "ERROR"], 5)        # select text mode format
@@ -118,7 +118,7 @@ def checkNwReg(self, timeout):
             else:
                 #Logger.warning("Not yet registered...")
                 pass
-        time.sleep(0.5)
+        sleep(0.5)
         return -1  # timeout->not registered
 
 
@@ -170,13 +170,13 @@ def setActiveSIM(self, SIM):
     if (SIM < 0 or SIM > 1):
         return
     res = sendATcommand("AT+CFUN=0", ["OK", "ERROR"], 10)                   # shutdown GSM part of the modem
-    time.sleep(1)                                                           # just delay a while
+    sleep(1)                                                           # just delay a while
     Logger.info("set active SIM to: " + str(SIM))
     res = sendATcommand("AT+QDSIM=" + str(SIM), ["OK", "ERROR"], 10)        # execute change SIM cmd
-    time.sleep(1)                                                           # just delay a while
+    sleep(1)                                                           # just delay a while
     res = sendATcommand("AT+CFUN=1", ["OK", "ERROR"], 10)                   # wakeup GSM part of the modem
     self.activeSIM = SIM                                                    # load active SIM value
-    time.sleep(5)                                                           # just delay a while
+    sleep(5)                                                           # just delay a while
 
 
 def getActiveSIM(self):

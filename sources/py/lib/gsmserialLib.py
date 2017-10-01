@@ -21,6 +21,7 @@
 
 ############################################################################################################################################
 from globalPara import *
+from userDefErrs import *
 import time
 import serial
 import sys
@@ -28,174 +29,156 @@ import sys
 
 def startSerialCom():
     """
-    Start the serial communication
-
-    Starts the serial communication and return 0 in case of success
-
+    start the serial communication, if not succeeded closes the serial communication and raises an error
     set the ATV uGSM module parameter to 1 to communicate in long result code format <CR><LF><verbose code><CR><LF>
-
     set the ATE uGSM module parameter to 1 to 'set command exho mode on'
-
-    @return: 0 if SUCCESS -1 for ERROR
+    :raise
+       * SerialStartError
+       * SerialSetupError
     """
-    global agsm
-    time.sleep(1)
-    Logger.info("Open uGSM connection on /dev/ttyAMA0")
-
+    global gsmModule
     try:
-        agsm = serial.Serial("/dev/ttyAMA0", serialSpeed, timeout=1)
+        gsmModule = serial.Serial("/dev/ttyAMA0", serialSpeed, timeout=1)
     except:
-        Logger.error("ERROR opening uGSM connection")
         stopSerialCom()
-        # agsm.open()
-        # print("Try again...")
-        return -1
-
-    aGsmWRITE("+++\r\n")
-    aGsmWRITE(chr(0x1B) + "\r\n")
-    aGsmWRITE("AT\r\n")
-    aGsmWRITE("ATE1\r\n")
-    aGsmWRITE("ATV1\r\n")
-    clearSInput()
-    clearInput()
-    return 0
+        raise SerialStartError
+    else:
+        try:
+            gsmModuleWrite("+++\r\n")
+            gsmModuleWrite(chr(0x1B) + "\r\n")
+            gsmModuleWrite("AT\r\n")
+            gsmModuleWrite("ATE1\r\n")
+            gsmModuleWrite("ATV1\r\n")
+            clearSInput()
+            clearInput()
+        except:
+            raise SerialSetupError
 
 
 def stopSerialCom():
     """
     Stop the serial communication
-
-    Close the serial communication
-
-    @return: 0 if SUCCESS and -1 if ERROR
+    :raise
+        *SerialStopError
     """
-    global agsm
+    global gsmModule
     try:
-        agsm.close()
-        Logger.info("Closed uGSM connection on /dev/ttyAMA0")
+        gsmModule.close()
     except:
-        Logger.error("ERROR closing SERIAL on /dev/ttyAMA0")
-        return -1
-    return 0
+        raise SerialStopError
 
 
-def recUARTdata(endchars, to, tm):
+def recUARTdata(endChars, timeOut, timeMany):
     """
     retrieve UART data
-
-    Read from modem - read string is loaded in global var buffd
-
-    @param endchars: endchars [SUCCESS STRING,FAILURE STRING]
-    @param to: timeout value
-    @param tm: how many chars to read (maximum) in one loop from serial
-    @return: buffer length
+    Read from modem - read string is loaded in global var dataBuffer
+    :param
+        *endChars: endchars [SUCCESS STRING,FAILURE STRING]
+        *timeOut: timeout value
+        *timeMany: how many chars to read (maximum) in one loop from serial
+    :return:
+        *ONLY the buffer length
+    :raise
+        *SerialRecError
     """
-    global buffd
-    global agsm
-    buffd = ''
-    dt = ''
+    global dataBuffer
+    global gsmModule
+    dataBuffer = ''
     t = time.time()
     while 1:
-        if time.time() - t > to:
+        if time.time() - t > timeOut:
             break
-        dt = agsm.read(tm)
-        buffd = buffd + dt
-        if (len(buffd) > 0):
+        dataBuffer = dataBuffer + gsmModule.read(timeMany)
+        if (len(dataBuffer) > 0):
             j = 0
-            for x in endchars:
-                if (buffd.find(x) != -1):
-                    agsm.flushInput()
+            for x in endChars:
+                if dataBuffer.find(x) != -1:
+                    gsmModule.flushInput()
                     return j
                 j = j + 1
-    agsm.flushInput()
-    Logger.error("Unable to retrieve UART data! CDTO![" + buffd + "]")
-    return -1
+    gsmModule.flushInput()
+    raise SerialRecError
 
 
-def sendATcommand(command, endchars, to):
+def sendATcommand(command, endChars, timeOut):
     """
     Sends to the modem the  command, adding "\r\n" to the end of it
-
-    Modem response is loaded in global var buffd
-
-    @param command: Command to pe forwarded to the modem
-    @param endchars: looking for endchars [SUCCESS STRING,FAILURE STRING]
-    @param to: timeout value
-    @return: 0 for SUCCESS, WILL EXIT the SYSTEM for more than ATcmdNOFRetry timeout errors in a row
+    Modem response is loaded in global var dataBuffer
+    :param
+        *command: Command to pe forwarded to the modem
+        *endChars: looking for endchars [SUCCESS STRING,FAILURE STRING]
+        *timeOut: timeout value
+    :raise:
+        *SerialCommWriteError
+        *SerialCommReadError
     """
-    global agsm
-    global sreadlen
+    global gsmModule
+    global readStringLen
 
     for i in range(ATcmdNOFRetry):
-        agsm.write(command + "\r\n")
-        recData = recUARTdata(endchars, to, sreadlen)
-        if recData != -1:
-            return (recData)
+        try:
+            gsmModule.write(command + "\r\n")
+        except:
+            raise SerialCommWriteError
+        try:
+            recData = recUARTdata(endChars, timeOut, readStringLen)
+        except:
+            raise SerialCommReadError
+        else:
+            return recData
 
-    Logger.error(
-        'Unable to retrieve response to %s command from QuectelM95 for %s times in a row. Sys will now exit...' % (
-            command, ATcmdNOFRetry))
-    sys.exit(2)
+    raise SerialCommFatalError
 
 
 def getResponse():
     """
-    @param return: buffd the global var containing the response after a sendATcommand call
+    :return:
+        *dataBuffer the global var containing the response after a sendATcommand call
     """
-    #global buffd
-    return buffd
+    return dataBuffer
 
 
-def aGsmWRITE(command):
+def gsmModuleWrite(command):
     """
-    Write a command to serial without CR LF!!
-
-    @param command: command to be written to serial
-    @return: void
+    Write a command to serial without addind CR LF!!
+    :param
+        *command: command to be written to serial
     """
-    global agsm
-    agsm.write(command)
+    global gsmModule
+    gsmModule.write(command)
 
 
-# clear Input
 def clearInput():
     """
-    flush the input from serial com
-
-    @return: void
+    flush the input from serial communication
     """
-    agsm.flushInput()
+    gsmModule.flushInput()
 
 
 def clearSInput():
     """
-    @return: void
     """
-    if (agsm.inWaiting()):
-        agsm.read(4096)
+    if (gsmModule.inWaiting()):
+        gsmModule.read(4096)
 
 
 def readline(timeout):
     """
-    Read a line, which means until 0x0A (line feed) is received from UART
-
-    @param timeout: timeout value in miliseconds
-    @return: result, read line or -1 for TIMEOUT ERROR
+    Reads a line, which means until 0x0A (line feed) is received from UART
+    :param
+        *timeout: timeout value in milliseconds
+    :raise
+        *SerialReadLineError
     """
-    global buffd
-    cnt = 0
-    c = ""
-    res = 0
-    buffd = ""
-    startTime = 1000 * time.time()  # get the current time
+    global dataBuffer
+    dataBuffer = ""
+    startTime = 1000 * time.time()      # get the current time
     while (1):
-        c = agsm.read(1)
-        res = 1  # return found
+        c = gsmModule.read(1)
         if (len(c) > 0):
-            if (ord(c) == 0x0A):  # if char c is line feed
+            if (ord(c) == 0x0A):        # if char c is line feed
                 break
-            buffd = buffd + c
+            dataBuffer = dataBuffer + c
         if (timeout > 0 and 1000 * time.time() - startTime > timeout):
-            res = -1  # timeout error
+            raise SerialReadLineError
             break
-    return res

@@ -27,6 +27,7 @@ from unittest import result
 
 from handlCls import *
 from managerCls import *
+from userDefErrs import *
 import signal
 import sys
 from globalPara import *
@@ -559,12 +560,28 @@ class Daemon:
             f.close()
 
     def systemSetup(self):
-        Logger.info('System is starting the Setup procedures right now ... ')
-        startSerialCom()
+        Logger.info('SMSGate system is starting the Setup procedures right now')
+
+        # time.sleep(1)
         QuectelM95.hwSetup()
-        time.sleep(1)
+
+        # time.sleep(1)
         QuectelM95.powerOn()
-        time.sleep(1)
+
+        # time.sleep(1)
+        try:
+            startSerialCom()
+        except SerialStartError:
+            Logger.error('SerialStartError while trying to start serial communication...')
+        except SerialSetupError:
+            Logger.error('SerialSetupError while trying to start serial communication...')
+        except:
+            Logger.error('Unknown error while trying to start serial communication...')
+        else:
+            Logger.info('Serial communication setup procedures completed successfully.')
+
+
+
         QuectelM95.setup()
         QuectelM95.setSMSstorage('SM', 'SM', 'SM')
         QuectelM95.deleteMulSMS('ALL')
@@ -582,7 +599,18 @@ class Daemon:
     def systemQuit(self):
         Logger.info('System is starting the Quit procedures right now ... ')
         QuectelM95.powerOff()
-        stopSerialCom()
+
+        try:
+            stopSerialCom()
+        except SerialStopError:
+            Logger.error('SerialStopError while trying to stop serial communication...')
+        except:
+            Logger.error('Unknwn Error while trying to stop serial communication...')
+        else:
+            Logger.info('Serial communication was successfully closed.')
+
+
+
         QuectelM95.hwRelease()
         # RPiemail.quit()
         if (not Manager.stopPPP()):

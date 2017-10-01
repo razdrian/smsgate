@@ -23,7 +23,7 @@
 
 from gsmserialLib import *
 from string import replace
-
+from time import sleep
 
 def sendSMS(self, phno, phtype, message):
     """
@@ -36,7 +36,7 @@ def sendSMS(self, phno, phtype, message):
     @return: 0 on success, 1 on failure
     """
     res = 0
-    aGsmWRITE("AT+CMGS=\"" + phno + "\"," + phtype + "\r")
+    gsmModuleWrite("AT+CMGS=\"" + phno + "\"," + phtype + "\r")
     res = recUARTdata(">", "ERROR", 12)
     if (res == 0):
         msg = message + chr(0x1A)  # adding "send message char" to the message
@@ -68,10 +68,10 @@ def refreshSMSno(self):
             else:
                 Logger.error("Error on querry number of SMS and total storage.")
                 return -1
-        time.sleep(0.5)
-    buffd = getResponse()
-    # Logger.debug(buffd)
-    processed = buffd.split(",")
+        sleep(0.5)
+    dataBuffer = getResponse()
+    # Logger.debug(dataBuffer)
+    processed = dataBuffer.split(",")
     try:
         self.noSMS = int(processed[1])
         self.totSMS = int(processed[2])
@@ -115,7 +115,7 @@ def setSMSstorage(self, mem1, mem2, mem3):
             else:
                 Logger.error("Error trying to select the memory storages.")
                 return -1
-        time.sleep(0.5)
+        sleep(0.5)
     return 0
 
 
@@ -130,20 +130,20 @@ def getSMS(self, SMSindex):
     @param SMSindex: The index of the SMS (range 1:20 for MT set)
     @return: SMS content in var SMSmessage OR -1 if failure to communicate
     """
-    global sreadlen
+    global readStringLen
     SMSmessage = ["", "", "", ""]
 
     # start read SMS
-    aGsmWRITE("AT+CMGR=" + str(SMSindex) + "\r")
-    recUARTdata(["OK", "ERROR"], 5, sreadlen)  # receive modem's response...in buffd
+    gsmModuleWrite("AT+CMGR=" + str(SMSindex) + "\r")
+    recUARTdata(["OK", "ERROR"], 5, readStringLen)  # receive modem's response...in dataBuffer
     # end read SMS
 
-    buffd = getResponse()
-    if (len(buffd) < 1):
+    dataBuffer = getResponse()
+    if (len(dataBuffer) < 1):
         Logger.error("Error trying to read SMS from index " + str(SMSindex))
         return -1
    
-    processed=buffd.split(",",4) 
+    processed=dataBuffer.split(",",4) 
     buff = processed[0].split("\"")
     SMSmessage[0] = replace(str(buff[1]), "\"", "")  # type(REC) READ/UNREAD
     SMSmessage[1] = replace(str(processed[1]), "\"", "")  # sender number
@@ -184,7 +184,7 @@ def deleteSMS(self, SMSindex):
             else:
                 Logger.error("Error trying to delete SMS index " + str(SMSindex))
                 return -1
-        time.sleep(0.5)
+        sleep(0.5)
     return 0
 
 
@@ -209,7 +209,7 @@ def deleteMulSMS(self, category):
             else:
                 Logger.error("Error trying to delete " + str(category) + " messages.")
                 return -1
-        time.sleep(0.5)
+        sleep(0.5)
     return 0
 
 def getnoSMS(self):
