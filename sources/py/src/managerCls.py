@@ -22,6 +22,7 @@
 ############################################################################################################################################
 
 from globalPara import *
+from userDefErrs import *
 import RPi.GPIO as GPIO
 import time
 import subprocess
@@ -31,7 +32,7 @@ class Manager:
         self.state = 'FullyCharged'
         self.queue=[]
 
-    def setup(self):
+    def hwSetup(self):
 
         global GPIO
         GPIO.setmode(GPIO.BOARD)
@@ -40,15 +41,18 @@ class Manager:
             GPIO.setup(INT, GPIO.IN)
             GPIO.setup(POL, GPIO.IN)
             GPIO.setup(CLR, GPIO.OUT, initial=GPIO.HIGH)
+            GPIO.setup(STATUS, GPIO.IN)
+            GPIO.setup(POWER, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(RESET, GPIO.OUT, initial=GPIO.LOW)
         except:
-            GPIO.cleanup()
-            #global GPIO
-            GPIO.setup(INT, GPIO.IN)
-            GPIO.setup(POL, GPIO.IN)
-            GPIO.setup(CLR, GPIO.OUT, initial=GPIO.HIGH)
+            raise GPIOSetupError
+        GPIO.setwarnings(True)
 
-    def quit(self):
-        GPIO.cleanup()
+    def hwRelease(self):
+        try:
+            GPIO.cleanup()
+        except:
+            raise GPIOReleaseError
 
     def setState(self, newState):
         self.state = newState

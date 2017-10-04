@@ -1,5 +1,8 @@
+
 ############################################################################################################################################
 # COPYRIGHT (C) 2016 Razvan Petre
+
+
 # * Licensed under the Apache License, Version 2.0 (the "License");
 # * you may not use this file except in compliance with the License.
 # * You may obtain a copy of the License at
@@ -33,6 +36,7 @@ import sys
 from globalPara import *
 import threading
 import sys, os, time, atexit
+import traceback
 
 # objects used are global declared here
 RPiemail = Email()
@@ -80,7 +84,13 @@ def smsWorker(sms_event, sms_kill):
         QuectelM95.lock.acquire()
         QuectelM95.refreshStat(True)
         if QuectelM95.status:
-            if QuectelM95.checkNwReg(5):
+            try:
+                QuectelM95.checkNwReg(5)
+            except NwRegistrationError:
+                Logger.error('GSM Module is not registered to network. We should wait4signal...')
+            except:
+                Logger.error('Unknown error while trying to querry GSM Module network registration...')
+            else:
                 QuectelM95.refreshSMSno()
                 index = QuectelM95.noSMS
                 if index != 0:
@@ -89,11 +99,10 @@ def smsWorker(sms_event, sms_kill):
                         QuectelM95.deleteSMS(index)
                     else:
                         Logger.error('System could not handle SMS! It will try to handle it next iteration...')
-            else:
-                Logger.error('QuectelM95 is not registered to network. We should wait4signal...')
         else:
             Logger.info('QuectelM95 status is off! System will restart QM95')
             QuectelM95.restart()
+
 
         if QuectelM95.lock.locked():
             QuectelM95.lock.release()
@@ -564,6 +573,16 @@ class Daemon:
 
         time.sleep(1)
         try:
+            Manager.hwSetup()
+        except GPIOSetupError:
+            Logger.error('GPIOSetupError while trying to setup the GPIO pins...')
+        except:
+            Logger.error('Unknown Error while trying to setup the GPIO pins...')
+        else:
+            Logger.info('GPIO pins were successfully setup.')
+
+        time.sleep(1)
+        try:
             startSerialCom()
         except SerialStartError:
             Logger.error('SerialStartError while trying to start serial communication...')
@@ -573,9 +592,6 @@ class Daemon:
             Logger.error('Unknown error while trying to start serial communication...')
         else:
             Logger.info('Serial communication setup procedures completed successfully.')
-
-        time.sleep(1)
-        QuectelM95.hwSetup()
 
         time.sleep(1)
         try:
@@ -590,7 +606,7 @@ class Daemon:
             Logger.info('GSM Modem is now powered on.')
 
 
-        time.sleep(4)
+        time.sleep(1)
         QuectelM95.setup()
         QuectelM95.deleteMulSMS('ALL')
 	
@@ -601,27 +617,13 @@ class Daemon:
             if(ok):
                 Logger.error('GPRS initialization not completed... Retry in a few seconds seconds')
 
-        Logger.info('GPRS initialization compelted. All system GOOD to GO!')
+        Logger.info('GPRS initialization compelted.')
+
         # RPiemail.setup()
-        Manager.setup()
+        Logger.info('SMSGate system Setup procedures completed.P0EHALI')
 
     def systemQuit(self):
-        Logger.info('SMSGate system is starting the quit procedures right now')
-
-        Manager.quit()
-        if (not Manager.stopPPP()):
-            Logger.error('GPRS final stop error ...')
-        else:
-            Logger.info('GPRS stop compelted!')
-
-        try:
-            stopSerialCom()
-        except SerialStopError:
-            Logger.error('SerialStopError while trying to stop serial communication...')
-        except:
-            Logger.error('Unknwn Error while trying to stop serial communication...')
-        else:
-            Logger.info('Serial communication was successfully closed.')
+        Logger.info('SMSGate system is starting the Quit procedures right now')
 
         try:
             QuectelM95.powerOff()
@@ -634,8 +636,30 @@ class Daemon:
         else:
             Logger.info('GSM Modem is now powered off.')
 
-        QuectelM95.hwRelease()
+        if (not Manager.stopPPP()):
+            Logger.error('GPRS final stop error ...')
+        else:
+            Logger.info('GPRS stop compelted!')
 
+        try:
+            stopSerialCom()
+        except SerialStopError:
+            Logger.error('SerialStopError while trying to stop serial communication...')
+        except:
+            Logger.error('Unknown Error while trying to stop serial communication...')
+        else:
+            Logger.info('Serial communication was successfully closed.')
+
+        try:
+            Manager.hwRelease()
+        except GPIOReleaseError:
+            Logger.error('GPIOSetupError while trying to release the GPIO pins...')
+        except:
+            Logger.error('Unknown Error while trying to release the GPIO pins...')
+        else:
+            Logger.info('GPIO pins were successfully released.')
+
+        Logger.info('SMSGate system Quit procedures completed.')
 
     def run(self):
         self.isrunning = True

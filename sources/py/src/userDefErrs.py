@@ -85,3 +85,51 @@ class GPIOSetupError(Exception):
 class GPIOReleaseError(Exception):
     def __init__(self):
         pass
+
+class RequestedPinError(Exception):
+    def __init__(self):
+        pass
+
+class GSMModuleSetupError(Exception):
+    def __init__(self):
+        pass
+
+class IMEIQuerryError(Exception):
+    def __init__(self):
+        pass
+
+class IMSIQuerryError(Exception):
+    def __init__(self):
+        pass
+
+class SMSNumberQuerryError(Exception):
+    def __init__(self):
+        pass
+
+class SignalLevelQuerryError(Exception):
+    def __init__(self):
+        pass
+
+class NwRegistrationError(Exception):
+    def __init__(self):
+        pass
+
+class GsmModuleWriteError(Exception):
+    def __init__(self):
+        pass
+
+class GsmModuleReadError(Exception):
+    def __init__(self):
+        pass
+
+class SendSMSError(Exception):
+    def __init__(self):
+        pass
+
+class DeleteSMSError(Exception):
+    def __init__(self):
+        pass
+
+class DeleteMultipleSMSError(Exception):
+    def __init__(self):
+        pass
