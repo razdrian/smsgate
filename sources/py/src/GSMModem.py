@@ -21,13 +21,14 @@
 
 ############################################################################################################################################
 
-from userDefErrs import *
-from gsmserialLib import *
+from Errors import *
+from SerialCOM import *
+
 from time import sleep
 from string import replace
-import threading
 import RPi.GPIO as GPIO
-
+import threading
+import traceback
 
 class GSMModem:
     """
@@ -96,7 +97,7 @@ class GSMModem:
             raise ModemAlreadyOffError
         else:
             try:
-                sendATcommand("AT+QPOWD", ["OK", "ERROR"], 1)
+                serialCOM.sendATCommand("AT+QPOWD", ["OK", "ERROR"], 1)
             except:
                 self.status=True
                 return
@@ -158,29 +159,26 @@ class GSMModem:
             try:
                 self.status = GPIO.input(STATUS)
             except:
-                traceback.print_exc()
                 self.status = False
                 raise GPIOinputError
         else:
             try:
-                gsmModuleWrite("+++\r\n")
-                gsmModuleWrite(chr(0x1B) + "\r\n")
-                gsmModuleWrite("AT\r\n")
-                gsmModuleWrite("ATE1\r\n")
-                gsmModuleWrite("ATV1\r\n")
-                clearSInput()
-                clearInput()
+                serialCOM.connection.write("+++\r\n")
+                serialCOM.connection.write(chr(0x1B) + "\r\n")
+                serialCOM.connection.write("AT\r\n")
+                serialCOM.connection.write("ATE1\r\n")
+                serialCOM.connection.write("ATV1\r\n")
+                serialCOM.clearSInput()
+                serialCOM.clearInput()
             except:
                 raise SerialSetupError
             try:
-                sendATcommand("AT", ["OK", "ERROR"], 1)
+                serialCOM.sendATCommand("AT", ["OK", "ERROR"], 1)
             except:
                 self.status=False
                 return
             else:
                 self.status=True
-
-
 
 
     def setup(self):
@@ -197,47 +195,45 @@ class GSMModem:
             *GSMModuleSetupError
         """
         try:
-            sendATcommand("AT+QIMODE=0", ["OK", "ERROR"], 3)                            # Select TCPIP transferring mode
-            sendATcommand("AT+QINDI=0", ["OK", "ERROR"], 3)                             # Set the method to handle TCPIP data
-            sendATcommand("AT+QIMUX=0", ["OK", "ERROR"], 3)                             # Control whether to enable TCPIP data
-            sendATcommand("AT+QIDNSIP=0", ["OK", "ERROR"], 3)                           # Connect with IP address or DNS
-            sendATcommand("AT+CSCS=\"IRA\"",["OK","ERROR"],3)                           # Select TE character set to Intern Reference Alphabet
-            sendATcommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", ["OK", "+CMS ERROR:"], 3)     #Select storage for SMS mem1 = SM, mem2 = SM, mem3 = SM
+            serialCOM.sendATCommand("AT+QIMODE=0", ["OK", "ERROR"], 3)                            # Select TCPIP transferring mode
+            serialCOM.sendATCommand("AT+QINDI=0", ["OK", "ERROR"], 3)                             # Set the method to handle TCPIP data
+            serialCOM.sendATCommand("AT+QIMUX=0", ["OK", "ERROR"], 3)                             # Control whether to enable TCPIP data
+            serialCOM.sendATCommand("AT+QIDNSIP=0", ["OK", "ERROR"], 3)                           # Connect with IP address or DNS
+            serialCOM.sendATCommand("AT+CSCS=\"IRA\"",["OK","ERROR"],3)                           # Select TE character set to Intern Reference Alphabet
+            serialCOM.sendATCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"", ["OK", "+CMS ERROR:"], 3)     #Select storage for SMS mem1 = SM, mem2 = SM, mem3 = SM
         except:
             raise GSMModuleSetupError
 
         while True:
-            clearInput()
+            serialCOM.clearInput()
             try:
-                sendATcommand("AT+CPIN?", ["OK", "ERROR"], 3)   #was 5 here and abov >>>>>>>
+                serialCOM.sendATCommand("AT+CPIN?", ["OK", "ERROR"], 3)
             except:
+                traceback.print_exc()
                 raise GSMModuleSetupError
             else:
-                dataBuffer = getResponse()
-                if (dataBuffer.find("READY")):
+                if (serialCOM.dataBuffer.find("READY")):
                     break
                 else:
                     raise RequestedPinError
-
         sleep(1)
         while True:
-            clearInput()
+            serialCOM.clearInput()
             try:
-                sendATcommand("AT+CPBS?", ["OK", "ERROR"], 3)                           # select phonebook memory storage
+                serialCOM.sendATCommand("AT+CPBS?", ["OK", "ERROR"], 3)                           # select phonebook memory storage
             except:
                 raise GSMModuleSetupError
-            dataBuffer = getResponse()
-            if dataBuffer.find("+CME ERROR") < 0:
+            if serialCOM.dataBuffer.find("+CME ERROR") < 0:
                 break
             sleep(0.5)
 
         try:
-            sendATcommand("AT+CPBS=\"SM\"", ["OK", "ERROR"], 5)                         # set phonebook memory storage as SIM
-            sendATcommand("AT+CMGF=1", ["OK", "ERROR"], 3)                              # select text mode format
-            sendATcommand("AT+CNMI=2,0,0,0,0\r", ["OK", "ERROR"], 3)                    # SMS event reporting configuration
+            serialCOM.sendATCommand("AT+CPBS=\"SM\"", ["OK", "ERROR"], 5)                         # set phonebook memory storage as SIM
+            serialCOM.sendATCommand("AT+CMGF=1", ["OK", "ERROR"], 3)                              # select text mode format
+            serialCOM.sendATCommand("AT+CNMI=2,0,0,0,0\r", ["OK", "ERROR"], 3)                    # SMS event reporting configuration
         except:
             raise GSMModuleSetupError
-        clearInput()
+        serialCOM.clearInput()
 
 
     def getIMEI(self):
@@ -250,11 +246,10 @@ class GSMModem:
             *the IMEI (Modem related identifier)
         """
         try:
-            sendATcommand("AT+GSN", ["OK", "ERROR"], 3)
+            serialCOM.sendATCommand("AT+GSN", ["OK", "ERROR"], 3)
         except:
             raise IMEIQuerryError
-        dataBuffer = getResponse()
-        IMEI = dataBuffer[9:-8]
+        IMEI = serialCOM.dataBuffer[9:-8]
         return IMEI
 
 
@@ -267,14 +262,13 @@ class GSMModem:
         :return:
             *IMSI (SIM related identifier)
         """
-        clearInput()
+        serialCOM.clearInput()
         try:
-            sendATcommand("AT+CIMI", ["OK", "ERROR"], 3)
+            serialCOM.sendATCommand("AT+CIMI", ["OK", "ERROR"], 3)
         except:
             raise IMSIQuerryError
         else:
-            dataBuffer = getResponse()
-            if len(dataBuffer) > 18:
+            if len(serialCOM.dataBuffer) > 18:
                 return dataBuffer[dataBuffer.find("AT+CIMI") + 10:dataBuffer.find("OK") - 4]
             else:
                 raise IMSIQuerryError
@@ -292,15 +286,14 @@ class GSMModem:
         startTime = time.time()
         while (time.time() - startTime < timeout):
             try:
-                sendATcommand("AT+CREG?", ["OK", "ERROR"], 10)
+                serialCOM.sendATCommand("AT+CREG?", ["OK", "ERROR"], 10)
             except:
                 raise NwRegistrationError
             else:
-                dataBuffer = getResponse()
-                if dataBuffer.find("0,1") > 0 or dataBuffer.find("0,5") > 0:
+                if serialCOM.dataBuffer.find("0,1") > 0 or serialCOM.dataBuffer.find("0,5") > 0:
                     return
                 else:
-                    pass        #not yet registered, wait for timeout to pass
+                    pass
                 sleep(0.5)
         raise NwRegistrationError
 
@@ -316,11 +309,11 @@ class GSMModem:
         """
         level = 0
         try:
-            sendATcommand("AT+CSQ", ["OK", "ERROR"], 10)
+            serialCOM.sendATCommand("AT+CSQ", ["OK", "ERROR"], 10)
         except:
             raise SignalLevelQuerryError
         else:
-            dataBuffer = getResponse()
+            dataBuffer = serialCOM.dataBuffer
             startat = dataBuffer.find(": ")
             endat = dataBuffer.find(",")
             result = int(dataBuffer[startat + 2:endat])
@@ -386,15 +379,15 @@ class GSMModem:
         SMSmessage = ["", "", "", ""]
 
         try:
-            gsmModuleWrite("AT+CMGR=" + str(SMSindex) + "\r")
+            serialCOM.connection.write("AT+CMGR=" + str(SMSindex) + "\r")
         except:
             raise GsmModuleWriteError
         try:
-            recUARTdata(["OK", "ERROR"], 5, readStringLen)      # response from modem will be received in dataBuffer
+            serialCOM.retrieveData(["OK", "ERROR"], 5)
         except:
             raise GsmModuleReadError
         else:
-            dataBuffer = getResponse()
+            dataBuffer = serialCOM.dataBuffer
 
             processed=dataBuffer.split(",",4)
             buffer = processed[0].split("\"")
@@ -427,16 +420,16 @@ class GSMModem:
         """
         res = 0
         try:
-            gsmModuleWrite("AT+CMGS=\"" + phoneNumber + "\"," + phoneType + "\r")
+            serialCOM.connection.write("AT+CMGS=\"" + phoneNumber + "\"," + phoneType + "\r")
         except:
             raise GsmModuleWriteError
         try:
-            recUARTdata(">", "ERROR", 12)
+            serialCOM.retrieveData([">", "ERROR"],5)
         except:
             raise GsmModuleReadError
         message = message + chr(0x1A)                               # adding "send message char" to the message
         try:
-            sendATcommand(message, ["OK", "ERROR"], 30)
+            serialCOM.sendATCommand(message, ["OK", "ERROR"], 30)
         except:
             raise SendSMSError
 
@@ -458,9 +451,9 @@ class GSMModem:
         """
         errCounter = 0
         while True:
-            clearInput()
+            serialCOM.clearInput()
             try:
-                sendATcommand("AT+CPMS?", ["OK", "+CMS ERROR:"], 10)
+                serialCOM.sendATCommand("AT+CPMS?", ["OK", "+CMS ERROR:"], 10)
             except:
                 if errCounter < 5:
                     errCounter = errCounter + 1
@@ -470,7 +463,7 @@ class GSMModem:
                 break
             sleep(0.5)
 
-        dataBuffer = getResponse()
+        dataBuffer = serialCOM.dataBuffer
         try:
             processed = dataBuffer.split(",")
             self.noSMS = int(processed[1])
@@ -495,9 +488,9 @@ class GSMModem:
         """
         errCounter = 0
         while True:
-            clearInput()
+            serialCOM.clearInput()
             try:
-                sendATcommand("AT+CMGD=" + str(SMSindex), ["OK", "+CMS ERROR:"],10)
+                serialCOM.sendATCommand("AT+CMGD=" + str(SMSindex), ["OK", "+CMS ERROR:"],10)
             except:
                 if errCounter < 5:
                     errCounter = errCounter + 1
@@ -520,10 +513,10 @@ class GSMModem:
         """
         errCounter = 0
         while True:
-            clearInput()
+            serialCOM.clearInput()
             try:
-                #sendATcommand("AT+QMGDA=\"DEL " + "" + category + "\"", ["OK", "+CMS ERROR:"], 10)
-                sendATcommand("AT+CMGD=1,4", ["OK", "+CMS ERROR:"], 10)
+                #sendATCommand("AT+QMGDA=\"DEL " + "" + category + "\"", ["OK", "+CMS ERROR:"], 10)
+                serialCOM.sendATCommand("AT+CMGD=1,4", ["OK", "+CMS ERROR:"], 10)
             except:
                 if errCounter < 5:
                     errCounter = errCounter + 1
@@ -534,3 +527,7 @@ class GSMModem:
             sleep(0.5)
 
         return 0    #de scos ASAP >>>
+
+
+#Class objects
+gsmModem = GSMModem()

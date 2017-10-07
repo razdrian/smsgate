@@ -22,12 +22,13 @@
 ############################################################################################################################################
 
 from globalPara import *
-from userDefErrs import *
-import RPi.GPIO as GPIO
+from Errors import *
+
 import time
 import subprocess
+import RPi.GPIO as GPIO
 
-class Manager:
+class SysManager:
     def __init__(self):
         self.state = 'FullyCharged'
         self.queue=[]
@@ -156,3 +157,7 @@ class Manager:
 
     def getPolState(self):
         return GPIO.input(POL)
+
+
+#Class objects
+sysManager = SysManager()

@@ -22,11 +22,12 @@
 ############################################################################################################################################
 
 
+from globalPara import *
+
 import imaplib
 import smtplib
 import threading
 from email.parser import Parser
-from globalPara import *
 import time
 import subprocess
 
@@ -353,3 +354,6 @@ class Email:
             return False
         Logger.info('SMTP conn successfully restarted')
         return True
+
+#Class objects
+email = Email()

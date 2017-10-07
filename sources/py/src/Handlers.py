@@ -70,10 +70,10 @@ Example of input info from different flows from SMS gate's point of view:
 """
 
 from globalPara import *
-from peopleCls import *
-from emailCls import *
-from daemonCls import *
-from gsmCls import *
+from Phonebook import *
+from Email import *
+from GSMModem import *
+
 import subprocess
 
 
@@ -88,10 +88,8 @@ class Handlers:
     If the number is not known or the fromat of the SMS/FS/email ----------------------> log warning
     """
 
-    def __init__(self, people, email, modem):
-        self.people = people
-        self.email = email
-        self.modem = modem
+    def __init__(self):
+        pass
 
     def validMailAddr(self, address):
         """
@@ -154,7 +152,7 @@ class Handlers:
         if sender_no[0] == '+':
             sender_no = sender_no[2:]
 
-        if self.people.checkPhoneNo(sender_no):
+        if phonebook.checkPhoneNo(sender_no):
             raw_sms = sms
             sms = sms.split('#')
 
@@ -162,50 +160,50 @@ class Handlers:
                 if len(sms) < 4:  # must be at least 4 : <command>#<sender_name>#<Subject>#<Body>
                     Logger.warning('Wrong eml action SMS format from %s!' % sender_no)
                     return
-                sender_name = self.people.getName(sender_no)
+                sender_name = phonebook.getName(sender_no)
                 for recipient in sms[1:len(sms) - 2]:  # iterate in recipients attributes of the SMS
                     recipient = recipient.strip().lower()
-                    if recipient in self.people.getGroups():  # if recipient is a group
+                    if recipient in phonebook.getGroups():  # if recipient is a group
                         Logger.info('Sending email to all the people in %s group' %recipient)
-                        to_list = self.people.getGroupConts(recipient, 'Email')
+                        to_list = phonebook.getGroupConts(recipient, 'Email')
                         for toMail in to_list:
                             if not toMail in checked_email:
-                                self.email.lock.acquire()
-                                if self.email.testSMTPping():
+                                email.lock.acquire()
+                                if email.testSMTPping():
                                     try:
-                                        if self.email.sendMail(sender_name, toMail, sms[len(sms) - 2].strip(),
+                                        if email.sendMail(sender_name, toMail, sms[len(sms) - 2].strip(),
                                                                sms[len(sms) - 1]) == -1:
-                                            if self.email.lock.locked():
-                                                self.email.lock.release()
+                                            if email.lock.locked():
+                                                email.lock.release()
                                             return -1
                                     finally:
-                                        if self.email.lock.locked():
-                                            self.email.lock.release()
+                                        if email.lock.locked():
+                                            email.lock.release()
                                     checked_email.append(toMail)
                                 else:
                                     Logger.error('Server in unreachable! watchdog will restart ppp connection in a moment...')
-                                    if self.email.lock.locked():
-                                        self.email.lock.release()
+                                    if email.lock.locked():
+                                        email.lock.release()
                                     return -1
 
                     elif self.validMailAddr(recipient):  # if recipient is a valid Mail address
                         if not recipient in checked_email:
-                            self.email.lock.acquire()
-                            if self.email.testSMTPping():
+                            email.lock.acquire()
+                            if email.testSMTPping():
                                 try:
-                                    if self.email.sendMail(sender_name, recipient, sms[len(sms) - 2].strip(),
+                                    if email.sendMail(sender_name, recipient, sms[len(sms) - 2].strip(),
                                                            sms[len(sms) - 1]):
-                                        if self.email.lock.locked():
-                                            self.email.lock.release()
+                                        if email.lock.locked():
+                                            email.lock.release()
                                         return -1
                                 finally:
-                                    if self.email.lock.locked():
-                                        self.email.lock.release()
+                                    if email.lock.locked():
+                                        email.lock.release()
                                 checked_email.append(recipient)
                             else:
                                 Logger.error('Server in unreachable! watchdog will restart ppp connection in a moment...')
-                                if self.email.lock.locked():
-                                    self.email.lock.release()
+                                if email.lock.locked():
+                                    email.lock.release()
 
                     else:
                         Logger.warning('%s is not a valid E-mail address or gropup name!' % recipient)
@@ -281,7 +279,7 @@ class Handlers:
         The application is restricted with only one possible direction for email, which is sendSMS
 
         @param email: the email to be handled
-        @return: -1 if failure due to QuectelM95 connection and 1 if succeded (also if BAD address/format number)
+        @return: -1 if failure due to gsmModem connection and 1 if succeded (also if BAD address/format number)
         """
 
         checked_numbers = []
@@ -293,28 +291,28 @@ class Handlers:
             if subject[0].strip().lower() == 'sms':
                 for recipient in subject[1:- 1]:  # iterate in recipients attributes of the mail
                     recipient = recipient.strip().lower()
-                    if recipient in self.people.getGroups():  # if recipient is a group
-                        for toNum in self.people.getGroupConts(recipient, 'PhoneNo'):
+                    if recipient in phonebook.getGroups():  # if recipient is a group
+                        for toNum in phonebook.getGroupConts(recipient, 'PhoneNo'):
                             if not toNum in checked_numbers:
                                 Logger.info("Sending '%s' SMS to %s in group %s" % (email['Body'][:-1], toNum, recipient))
-                                self.modem.lock.acquire()
+                                gsmModem.lock.acquire()
                                 try:
-                                    if self.modem.sendSMS(toNum, '129', email['Body']) == 1:
+                                    if gsmModem.sendSMS(toNum, '129', email['Body']) == 1:
                                         return -1
                                 finally:
-                                    if self.modem.lock.locked():
-                                        self.modem.lock.release()
+                                    if gsmModem.lock.locked():
+                                        gsmModem.lock.release()
                                 checked_numbers.append(toNum)
                     elif self.validPhoneNo(recipient):  # if recipient is a valid PhoneNo
                         if not recipient in checked_numbers:
                             Logger.info("Sending '%s' SMS to %s " % (email['Body'][:-1], recipient))
-                            self.modem.lock.acquire()
+                            gsmModem.lock.acquire()
                             try:
-                                if self.modem.sendSMS(recipient, '129', email['Body']) == 1:
+                                if gsmModem.sendSMS(recipient, '129', email['Body']) == 1:
                                     return -1
                             finally:
-                                if self.modem.lock.locked():
-                                    self.modem.lock.release()
+                                if gsmModem.lock.locked():
+                                    gsmModem.lock.release()
                             checked_numbers.append(recipient)
                     else:
                         Logger.warning('%s is not a valid phone number or group!' % recipient)
@@ -385,7 +383,7 @@ class Handlers:
 
         files stored in input_path having the sendEmail direction must have the name *.email eg: mysql_error.mail
 
-        @return: -1 if failure due to QuectelM95 Connection or RPiemail Connection and 1 if succeed
+        @return: -1 if failure due to gsmModem Connection or RPiemail Connection and 1 if succeed
         """
         checked_emails = []
         checked_numbers = []
@@ -410,37 +408,37 @@ class Handlers:
                     recipients = recipients.split('#')
                     for recipient in recipients:  # iterate in recipients attributes of file
                         recipient = recipient.strip().lower()
-                        if recipient in self.people.getGroups():  # if recipient is a group
-                            to_list = self.people.getGroupConts(recipient, 'PhoneNo')
+                        if recipient in phonebook.getGroups():  # if recipient is a group
+                            to_list = phonebook.getGroupConts(recipient, 'PhoneNo')
                             for toNum in to_list:
                                 if not toNum in checked_numbers:
                                     Logger.info("Sending '%s' SMS to %s in group %s" % (body, toNum, recipient))
-                                    self.modem.lock.acquire()
+                                    gsmModem.lock.acquire()
                                     try:
-                                        if self.modem.sendSMS(toNum, '129', body) == 1:
-                                            if self.modem.lock.locked():
-                                                self.modem.lock.release()
+                                        if gsmModem.sendSMS(toNum, '129', body) == 1:
+                                            if gsmModem.lock.locked():
+                                                gsmModem.lock.release()
                                             return -1
                                     except:
                                         return -1
                                     finally:
-                                        if self.modem.lock.locked():
-                                            self.modem.lock.release()
+                                        if gsmModem.lock.locked():
+                                            gsmModem.lock.release()
                                     checked_numbers.append(toNum)
-                        elif self.people.checkPhoneNo(recipient):  # if recipient is a valid PhoneNo
+                        elif phonebook.checkPhoneNo(recipient):  # if recipient is a valid PhoneNo
                             if not recipient in checked_numbers:
                                 Logger.info("Sending '%s' SMS to %s " % (body, recipient))
-                                self.modem.lock.acquire()
+                                gsmModem.lock.acquire()
                                 try:
-                                    if self.modem.sendSMS(recipient, '129', body) == 1:
-                                        if self.modem.lock.locked():
-                                            self.modem.lock.release()
+                                    if gsmModem.sendSMS(recipient, '129', body) == 1:
+                                        if gsmModem.lock.locked():
+                                            gsmModem.lock.release()
                                         return -1
                                 except:
                                     return -1
                                 finally:
-                                    if self.modem.lock.locked():
-                                        self.modem.lock.release()
+                                    if gsmModem.lock.locked():
+                                        gsmModem.lock.release()
                                 checked_numbers.append(recipient)
                         elif self.validPhoneNo(recipient):
                             Logger.warning('Could not send SMS to unauthorized phone number %s' % recipient)
@@ -469,48 +467,48 @@ class Handlers:
                     recipients = recipients.split('#')
                     for recipient in recipients:  # iterate in recipients attributes of file
                         recipient = recipient.strip().lower()
-                        if recipient in self.people.getGroups():  # if recipient is a group
+                        if recipient in phonebook.getGroups():  # if recipient is a group
                             Logger.info('Sending email to all the people in %s group' %recipient)
-                            to_list = self.people.getGroupCont(recipient, 'Email')
+                            to_list = phonebook.getGroupCont(recipient, 'Email')
                             for toMail in to_list:
                                 if not toMail in checked_emails:
-                                    self.email.lock.acquire()
-                                    if self.email.testSMTPping():
+                                    email.lock.acquire()
+                                    if email.testSMTPping():
                                         try:
-                                            if self.email.sendMail(sender_name, toMail, subject, body) == -1:
-                                                if self.email.lock.locked():
-                                                    self.email.lock.release()
+                                            if email.sendMail(sender_name, toMail, subject, body) == -1:
+                                                if email.lock.locked():
+                                                    email.lock.release()
                                                 return -1
                                         except:
                                             return -1
                                         finally:
-                                            if self.email.lock.locked():
-                                                self.email.lock.release()
+                                            if email.lock.locked():
+                                                email.lock.release()
                                         checked_emails.append(toMail)
                                     else:
                                         Logger.error('Server in unreachable! watchdog will restart ppp connection in a moment...')
-                                        if self.email.lock.locked():
-                                            self.email.lock.release()
+                                        if email.lock.locked():
+                                            email.lock.release()
 
-                        elif self.people.checkEmail(recipient):  # if recipient is a valid Email address
+                        elif phonebook.checkEmail(recipient):  # if recipient is a valid Email address
                             if not recipient in checked_emails:
-                                self.email.lock.acquire()
-                                if self.email.testSMTPping():
+                                email.lock.acquire()
+                                if email.testSMTPping():
                                     try:
-                                        if self.email.sendMail(sender_name, recipient, subject, body) == -1:
-                                            if self.email.lock.locked():
-                                                self.email.lock.release()
+                                        if email.sendMail(sender_name, recipient, subject, body) == -1:
+                                            if email.lock.locked():
+                                                email.lock.release()
                                             return -1
                                     except:
                                         return -1
                                     finally:
-                                        if self.email.lock.locked():
-                                            self.email.lock.release()
+                                        if email.lock.locked():
+                                            email.lock.release()
                                     checked_emails.append(recipient)
                                 else:
                                     Logger.error('Server in unreachable! watchdog will restart ppp connection in a moment...')
-                                    if self.email.lock.locked():
-                                        self.email.lock.release()
+                                    if email.lock.locked():
+                                        email.lock.release()
 
                         elif self.validMailAddr(recipient):
                             Logger.warning('Could not send email to unauthorized email address %s' % recipient)
@@ -520,3 +518,7 @@ class Handlers:
 
         else:
             Logger.error("%s has a wrong FS extension! Only *.sms and *.mail are allowed!" % path)
+
+
+#Class objects
+handlers = Handlers()

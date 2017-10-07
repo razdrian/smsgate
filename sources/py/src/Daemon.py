@@ -1,6 +1,6 @@
-
 ############################################################################################################################################
 # COPYRIGHT (C) 2016 Razvan Petre
+
 
 
 # * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,53 +25,44 @@
 ############################################################################################################################################
 
 # imports
-from logging import Manager
-from unittest import result
-
-from handlCls import *
-from managerCls import *
-from userDefErrs import *
-import signal
-import sys
+from Handlers import *
+from SysManager import *
+from Errors import *
 from globalPara import *
-import threading
-import sys, os, time, atexit
-import traceback
+from SerialCOM import *
 
-# objects used are global declared here
-RPiemail = Email()
-QuectelM95 = GSMModem()
-MyPeople = People()
-Manager = Manager()
-Gatehandle = Handlers(MyPeople, RPiemail, QuectelM95)
+import signal
+import sys, os, time, atexit
+import threading
+import traceback
 
 
 # workers of the three main threads
 def emailWorker(email_event, email_kill):
     while not email_kill.isSet():
-        RPiemail.lock.acquire()
-        if Manager.testGPRSping():
+        email.lock.acquire()
+        if sysManager.testGPRSping():
             try:
-                UIDs = RPiemail.getEmailUIDs()
+                UIDs = email.getEmailUIDs()
             finally:
-                if RPiemail.lock.locked():
-                    RPiemail.lock.release()
+                if email.lock.locked():
+                    email.lock.release()
             if len(UIDs) != 0:  # if there is a new email
-                RPiemail.lock.acquire()
+                email.lock.acquire()
                 try:
                     # treats all the relieved sms at once
                     for email_uid in UIDs.split():
-                        new_mail = RPiemail.getMail(email_uid)
-                        if Gatehandle.handleEmail(new_mail) != -1:
-                            RPiemail.deleteMail(email_uid)
+                        new_mail = email.getMail(email_uid)
+                        if handlers.handleEmail(new_mail) != -1:
+                            email.deleteMail(email_uid)
                         else:
                             Logger.error('System could not handle Email! It will try to handle it next iteration...')
                 finally:
-                    if RPiemail.lock.locked():
-                        RPiemail.lock.release()
+                    if email.lock.locked():
+                        email.lock.release()
         else:
-            if RPiemail.lock.release():
-                RPiemail.lock.release()
+            if email.lock.release():
+                email.lock.release()
             Logger.error('No Internet connection! This will be resolved by watchdog in a moment!')
 
         email_event.set()
@@ -81,31 +72,31 @@ def emailWorker(email_event, email_kill):
 
 def smsWorker(sms_event, sms_kill):
     while not sms_kill.isSet():
-        QuectelM95.lock.acquire()
-        QuectelM95.refreshStat(True)
-        if QuectelM95.status:
+        gsmModem.lock.acquire()
+        gsmModem.refreshStat(True)
+        if gsmModem.status:
             try:
-                QuectelM95.checkNwReg(5)
+                gsmModem.checkNwReg(5)
             except NwRegistrationError:
                 Logger.error('GSM Module is not registered to network. We should wait4signal...')
             except:
                 Logger.error('Unknown error while trying to querry GSM Module network registration...')
             else:
-                QuectelM95.refreshSMSno()
-                index = QuectelM95.noSMS
+                gsmModem.refreshSMSno()
+                index = gsmModem.noSMS
                 if index != 0:
-                    sms = QuectelM95.getSMS(index)
-                    if Gatehandle.handleSMS(sms[1], sms[3]) != -1:
-                        QuectelM95.deleteSMS(index)
+                    sms = gsmModem.getSMS(index)
+                    if handlers.handleSMS(sms[1], sms[3]) != -1:
+                        gsmModem.deleteSMS(index)
                     else:
                         Logger.error('System could not handle SMS! It will try to handle it next iteration...')
         else:
-            Logger.info('QuectelM95 status is off! System will restart QM95')
-            QuectelM95.restart()
+            Logger.info('gsmModem status is off! System will restart QM95')
+            gsmModem.restart()
 
 
-        if QuectelM95.lock.locked():
-            QuectelM95.lock.release()
+        if gsmModem.lock.locked():
+            gsmModem.lock.release()
         sms_event.set()
         time.sleep(delays['sms'])
         sms_event.clear()
@@ -121,7 +112,7 @@ def fsWorker(fs_event, fs_kill):
         finally:
             result = result.split('\n')
             if len(result) > 2:
-                if Gatehandle.handleFS(result[1]) != -1:  # always handle the first file is the returned list from FS
+                if handlers.handleFS(result[1]) != -1:  # always handle the first file is the returned list from FS
                     Logger.info('File %s will be now deleted ' % result[1])
                     try:
                         process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -143,21 +134,21 @@ def powerMngWorker(powerMng_event, powerMng_kill):
     timestamp = time.time()
     # TODO detect idle state of batt
     while not powerMng_kill.isSet():
-        if not Manager.getIntState():
-            if Manager.getPolState():
+        if not sysManager.getIntState():
+            if sysManager.getPolState():
                 if time.time() - timestamp < 65:
-                    if Manager.getState() != 'Charging':
-                        Manager.setState('Charging')
-                    Manager.incrementBattCap(time.time() - timestamp)
-                    if Manager.getBattCap() > defaultBattCap:
-                        Manager.setState('FullyCharged')
+                    if sysManager.getState() != 'Charging':
+                        sysManager.setState('Charging')
+                    sysManager.incrementBattCap(time.time() - timestamp)
+                    if sysManager.getBattCap() > defaultBattCap:
+                        sysManager.setState('FullyCharged')
                 else:
-                    Manager.setState('FullyCharged')
+                    sysManager.setState('FullyCharged')
             else:
-                if Manager.getState() != 'Discharging':
-                    Manager.setState('Discharging')
-                Manager.decrementBattCap(time.time() - timestamp)
-            Manager.clearInt()
+                if sysManager.getState() != 'Discharging':
+                    sysManager.setState('Discharging')
+                sysManager.decrementBattCap(time.time() - timestamp)
+            sysManager.clearInt()
             timestamp = time.time()
 
         powerMng_event.set()
@@ -207,12 +198,12 @@ def watchdogWorker(email_thread, sms_thread, fs_thread, powerMng_thread, events,
             except:
                 Logger.error('Unable to start the powerMng Thread.. Everything is lost right now')
 
-        if not Manager.testGPRSping():
+        if not sysManager.testGPRSping():
             Logger.info('No internet connection now! PPP must pe dead! I will try to restart it right now...')
             try:
-                if not Manager.stop():
+                if not sysManager.stop():
                     Logger.error('Could not turn off the PPP!')
-                if not Manager.start():
+                if not sysManager.start():
                     Logger.error('Could not turn on the PPP')
                 time.sleep(8)
             except:
@@ -378,12 +369,12 @@ class Daemon:
                 status += '_'
             status += '\n'
             status += '|' + 'Resource Name'.center(20) + '|' + 'State'.center(17) + '|' + '\n'
-            if QuectelM95.lock.locked():
+            if gsmModem.lock.locked():
                 locker = 'Locked'
             else:
                 locker = 'Released'
-            status += '|' + 'QuectelM95'.center(20) + '|' + locker.center(17) + '|' + '\n'
-            if RPiemail.lock.locked():
+            status += '|' + 'gsmModem'.center(20) + '|' + locker.center(17) + '|' + '\n'
+            if email.lock.locked():
                 locker = 'Locked'
             else:
                 locker = 'Released'
@@ -464,62 +455,62 @@ class Daemon:
             status += '\n'
 
             status += '-->Information regarding power management:\n'
-            if Manager.getState() == 'Charging':
-                chargingTime = Manager.getChargingTime()
+            if sysManager.getState() == 'Charging':
+                chargingTime = sysManager.getChargingTime()
                 status += 'On PowerLine '
                 status += 'SMSGate\'s battery is currently charging LEVEL=%d%% EToC=%dh %dm \n' % (
-                    Manager.getBattCap() / defaultBattCap * 100, int(chargingTime / 60), int(chargingTime % 60))
-            elif Manager.getState() == 'Discharging':
-                dischargingTime = Manager.getDischargingTime()
+                    sysManager.getBattCap() / defaultBattCap * 100, int(chargingTime / 60), int(chargingTime % 60))
+            elif sysManager.getState() == 'Discharging':
+                dischargingTime = sysManager.getDischargingTime()
                 status += 'On Battery '
                 status += 'SMSGate\'s battery is currently discharging LEVEL=%d%% EToD=%dh %dm \n' % (
-                    Manager.getBattCap() / defaultBattCap * 100, int(dischargingTime / 60), int(dischargingTime % 60))
+                    sysManager.getBattCap() / defaultBattCap * 100, int(dischargingTime / 60), int(dischargingTime % 60))
             else:
                 status += 'On PowerLine '
                 status += 'SMSGate\'s battery is Fully Charged! \n'
             status += '\n'
-            status += '-->Information about hardware QuectelM95:\n'
-            QuectelM95.lock.acquire()
+            status += '-->Information about hardware gsmModem:\n'
+            gsmModem.lock.acquire()
             try:
-                if QuectelM95.checkNwReg(5):
-                    signal_stat = QuectelM95.getSignalStat()
-                    status += 'QuectelM95 is registered to network, GSM signal is %s/7 level, ' % signal_stat
+                if gsmModem.checkNwReg(5):
+                    signal_stat = gsmModem.getSignalStat()
+                    status += 'gsmModem is registered to network, GSM signal is %s/7 level, ' % signal_stat
                 else:
-                    status += 'QuectelM95 is not registered to network! '
+                    status += 'gsmModem is not registered to network! '
 
-                QuectelM95.refreshStat(True)
-                if QuectelM95.status:
+                gsmModem.refreshStat(True)
+                if gsmModem.status:
                     status += 'and its status is: alive\n\n'
                 else:
                     status += 'and its status is: dead\n\n'
 
             finally:
-                if QuectelM95.lock.locked():
-                    QuectelM95.lock.release()
+                if gsmModem.lock.locked():
+                    gsmModem.lock.release()
             return status
         elif weight == 'Light':
             signal_stat = ''
             notReg = False
-            QuectelM95.lock.acquire()
+            gsmModem.lock.acquire()
             try:
-                if QuectelM95.checkNwReg(5):
-                    signal_stat = QuectelM95.getSignalStat()
+                if gsmModem.checkNwReg(5):
+                    signal_stat = gsmModem.getSignalStat()
                 else:
                     notReg = True
-                QuectelM95.refreshStat(True)
-                if QuectelM95.status:
+                gsmModem.refreshStat(True)
+                if gsmModem.status:
                     QM95Sts = True
                 else:
                     QM95Sts = False
             finally:
-                if QuectelM95.lock.locked():
-                    QuectelM95.lock.release()
+                if gsmModem.lock.locked():
+                    gsmModem.lock.release()
 
-            status = 'Resources: QuectelM95 is %s, signal: %s, status: %s and Email is %s.' % (
-                'Locked' if QuectelM95.lock.locked() else 'Released',
+            status = 'Resources: gsmModem is %s, signal: %s, status: %s and Email is %s.' % (
+                'Locked' if gsmModem.lock.locked() else 'Released',
                 str(signal_stat) + '/7' if not notReg else 'NOT registered, ',
                 'On' if QM95Sts else 'Off',
-                'Locked' if RPiemail.lock.locked() else 'Released')
+                'Locked' if email.lock.locked() else 'Released')
             status += 'Threads: Email: %s,%s SMS: %s,%s FS: %s,%s powerMng: %s,%s watchdog: %s,%s. ' % (
                 'Alive' if self.email_thread.isAlive() else 'X', 'Working' if self.events['email'].isSet() else 'Idle',
                 'Alive' if self.sms_thread.isAlive() else 'X', 'Working' if self.events['sms'].isSet() else 'Idle',
@@ -530,16 +521,16 @@ class Daemon:
                 'Working' if self.events['watchdog'].isSet() else 'Idle',)
 
             status += 'Power management:'
-            if Manager.getState() == 'Charging':
-                chargingTime = Manager.getChargingTime()
+            if sysManager.getState() == 'Charging':
+                chargingTime = sysManager.getChargingTime()
                 status += 'On PowerLine, '
                 status += 'batt is charging LEVEL=%d%% EToC=%dh %dm.' % (
-                    Manager.getBattCap() / defaultBattCap * 100, int(chargingTime / 60), int(chargingTime % 60))
-            elif Manager.getState() == 'Discharging':
-                dischargingTime = Manager.getDischargingTime()
+                    sysManager.getBattCap() / defaultBattCap * 100, int(chargingTime / 60), int(chargingTime % 60))
+            elif sysManager.getState() == 'Discharging':
+                dischargingTime = sysManager.getDischargingTime()
                 status += 'On Battery, '
                 status += 'batt is currently discharging LEVEL=%d%% EToD=%dh %dm.' % (
-                    Manager.getBattCap() / defaultBattCap * 100, int(dischargingTime / 60), int(dischargingTime % 60))
+                    sysManager.getBattCap() / defaultBattCap * 100, int(dischargingTime / 60), int(dischargingTime % 60))
             else:
                 status += 'On PowerLine,'
                 status += 'batt is Fully Charged!'
@@ -557,10 +548,10 @@ class Daemon:
             self.statusEvents['toEmail'].clear()
         elif self.statusEvents['toSMS'].isSet():
             status = self.getStatus('Light')
-            QuectelM95.lock.acquire()
+            gsmModem.lock.acquire()
             # TODO send somehow the status var to SMS
-            if QuectelM95.lock.locked():
-                QuectelM95.lock.release()
+            if gsmModem.lock.locked():
+                gsmModem.lock.release()
             self.statusEvents['toSMS'].clear()
         else:  # it came from CLI from sudo service statusgsm
             status = self.getStatus('Heavy')
@@ -573,7 +564,7 @@ class Daemon:
 
         time.sleep(1)
         try:
-            Manager.hwSetup()
+            sysManager.hwSetup()
         except GPIOSetupError:
             Logger.error('GPIOSetupError while trying to setup the GPIO pins...')
         except:
@@ -583,19 +574,20 @@ class Daemon:
 
         time.sleep(1)
         try:
-            startSerialCom()
+            serialCOM.startConnection()
         except SerialStartError:
             Logger.error('SerialStartError while trying to start serial communication...')
         except SerialSetupError:
             Logger.error('SerialSetupError while trying to start serial communication...')
         except:
+            traceback.print_exc()
             Logger.error('Unknown error while trying to start serial communication...')
         else:
             Logger.info('Serial communication setup procedures completed successfully.')
 
         time.sleep(1)
         try:
-            QuectelM95.powerOn()
+            gsmModem.powerOn()
         except ModemAlreadyOnError:
             Logger.warning('GSM Modem is already powered on...')
         except ModemPowerOnError:
@@ -607,26 +599,29 @@ class Daemon:
 
 
         time.sleep(1)
-        QuectelM95.setup()
-        QuectelM95.deleteMulSMS('ALL')
+
+        #TODO try except here ASAP!!
+        gsmModem.setup()
+        gsmModem.deleteMulSMS('ALL')
 	
         ok=True	
         while (ok):
-            Manager.startPPP()
-            ok=not Manager.testGPRSping()
+            sysManager.startPPP()
+            ok=not sysManager.testGPRSping()
             if(ok):
                 Logger.error('GPRS initialization not completed... Retry in a few seconds seconds')
 
         Logger.info('GPRS initialization compelted.')
 
-        # RPiemail.setup()
+        # email.setup()
+        # TODO phonebook.setup itself, i should setup it here and trat an error otherwise
         Logger.info('SMSGate system Setup procedures completed.P0EHALI')
 
     def systemQuit(self):
         Logger.info('SMSGate system is starting the Quit procedures right now')
 
         try:
-            QuectelM95.powerOff()
+            gsmModem.powerOff()
         except ModemAlreadyOffError:
             Logger.warning('GSM Modem is already powered off...')
         except ModemPowerOffError:
@@ -636,13 +631,13 @@ class Daemon:
         else:
             Logger.info('GSM Modem is now powered off.')
 
-        if (not Manager.stopPPP()):
+        if (not sysManager.stopPPP()):
             Logger.error('GPRS final stop error ...')
         else:
             Logger.info('GPRS stop compelted!')
 
         try:
-            stopSerialCom()
+            serialCOM.stopConnection()
         except SerialStopError:
             Logger.error('SerialStopError while trying to stop serial communication...')
         except:
@@ -651,7 +646,7 @@ class Daemon:
             Logger.info('Serial communication was successfully closed.')
 
         try:
-            Manager.hwRelease()
+            sysManager.hwRelease()
         except GPIOReleaseError:
             Logger.error('GPIOSetupError while trying to release the GPIO pins...')
         except:
@@ -671,3 +666,7 @@ class Daemon:
                 time.sleep(5)
         finally:
             self.isrunning = False
+
+
+#Class objects
+daemon = Daemon('/var/smsgate/smsgate.pid')

@@ -22,11 +22,10 @@
 ############################################################################################################################################
 
 # !/usr/bin/python
-from daemonCls import *
-import subprocess
+from Daemon import *
+
 
 if __name__ == "__main__":
-    daemon = Daemon('/var/smsgate/smsgate.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             if daemon.getPID():

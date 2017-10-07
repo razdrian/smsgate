@@ -10,7 +10,6 @@
 * In the first implementation, the one described in the blog article an Ethternet connection was needed
 * In the last implementeation available here as last version the internet connection comes from a PPP connetion from GPRS via the d-uGSM module
 
-
 ## Directory structure: ##
 * smsgate/documents -> 
 	* smsgate/documents/c-uGSM_module/  -> GSM docs, official http://itbrainpower.net/ sketch examples and the initial API provided by DragosIosub

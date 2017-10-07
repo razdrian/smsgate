@@ -20,11 +20,11 @@
 # DESCRIPTION: This module contains only the definition of People class
 
 ############################################################################################################################################
-from xml.dom import minidom
 from globalPara import *
+
 import json
 
-class People:
+class Phonebook:
     """
     self.people  -> is a list of dictionaries
                  -> each dictionary in people has the following keys: ID Name PhoneNo Email and Group
@@ -140,3 +140,5 @@ class People:
         return False
 
 
+#Class objects
+phonebook = Phonebook()
