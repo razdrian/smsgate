@@ -15,9 +15,9 @@
 # This library is based on code developed by Dragos Iosub, Bucharest 2015. http://itbrainpower.net,original code link below:
 # http://itbrainpower.net/micro-GSM-shield-module-cuGSM/GSM-micro-shield-board-module-RaspberryPI-Arduino-c-uGSM-features-code-examples
 #
-# NAME: powerMngCls.py
+# NAME: SysManager.py
 # PROJECT: SMSGate
-# DESCRIPTION: This module contains only the definition of PowerMng class
+# DESCRIPTION: This module contains the definition of SysManager class
 
 ############################################################################################################################################
 

@@ -15,13 +15,13 @@
 # This library is based on code developed by Dragos Iosub, Bucharest 2015. http://itbrainpower.net,original code link below:
 # http://itbrainpower.net/micro-GSM-shield-module-cuGSM/GSM-micro-shield-board-module-RaspberryPI-Arduino-c-uGSM-features-code-examples
 #
-# NAME: globalPara.py
+# NAME: Errors.py
 # PROJECT: SMSGate
-# DESCRIPTION: This module contains all the global parameters for the SMSgate system
+# DESCRIPTION: This module contains all custom errors from the system organised in categories according to each one's producer object
 
 ############################################################################################################################################
 
-
+# Errors thrown by SerialCOM object
 class SerialStartError(Exception):
     def __init__(self):
         pass
@@ -54,6 +54,8 @@ class SerialReadLineError(Exception):
     def __init__(self):
         pass
 
+
+# Errors thrown by GSMModem object
 class GPIOinputError(Exception):
     def __init__(self):
         pass
@@ -75,14 +77,6 @@ class ModemPowerOnError(Exception):
         pass
 
 class ModemPowerOffError(Exception):
-    def __init__(self):
-        pass
-
-class GPIOSetupError(Exception):
-    def __init__(self):
-        pass
-
-class GPIOReleaseError(Exception):
     def __init__(self):
         pass
 
@@ -131,5 +125,15 @@ class DeleteSMSError(Exception):
         pass
 
 class DeleteMultipleSMSError(Exception):
+    def __init__(self):
+        pass
+
+
+# Errors thrown by SysManager object
+class GPIOSetupError(Exception):
+    def __init__(self):
+        pass
+
+class GPIOReleaseError(Exception):
     def __init__(self):
         pass

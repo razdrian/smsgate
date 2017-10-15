@@ -15,9 +15,9 @@
 # This library is based on code developed by Dragos Iosub, Bucharest 2015. http://itbrainpower.net,original code link below:
 # http://itbrainpower.net/micro-GSM-shield-module-cuGSM/GSM-micro-shield-board-module-RaspberryPI-Arduino-c-uGSM-features-code-examples
 #
-# NAME: gsmserialLib.py
+# NAME: SerialCOM.py
 # PROJECT: SMSGate
-# DESCRIPTION: This module contains only serial library methods used in the system
+# DESCRIPTION: This module contains SerialCOM class definition used in the system to communicate with the GSMModule
 
 ############################################################################################################################################
 

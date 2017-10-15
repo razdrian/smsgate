@@ -17,6 +17,6 @@
 #
 # NAME: __init__.py
 # PROJECT: SMSGate
-# DESCRIPTION: This module contains only the definition of the GSM_Modem class
+# DESCRIPTION:
 
 ############################################################################################################################################
